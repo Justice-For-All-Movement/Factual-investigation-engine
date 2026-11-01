@@ -5,153 +5,204 @@
   "plannedPrCount": 26,
   "units": [
     {
-      "id": "AM-03.01",
+      "id": "AM-03-01",
       "title": "Pinned intake adapter",
-      "dependsOn": [
-        "AM-00.02",
-        "AM-01.02",
-        "AM-02.01"
-      ],
+      "dependsOn": [],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Contract suite rejects unsupported versions and confirms no direct suite writes to intake tables.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.01",
+      "externalDependencies": [],
+      "externalPrerequisites": [
+        "Required original cross-project milestone AM-00.02 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked",
+        "Required original cross-project milestone AM-01.02 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked",
+        "Required original cross-project milestone AM-02.01 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked"
+      ],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-03.02",
+      "id": "AM-03-02",
       "title": "Accessible report forms",
       "dependsOn": [
-        "AM-03.01"
+        "AM-03-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "A low-bandwidth keyboard-only user submits without payment, lawyer details or mandatory government identity.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.02",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-03.03",
+      "id": "AM-03-03",
       "title": "Participant privacy and recovery",
       "dependsOn": [
-        "AM-03.01"
+        "AM-03-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Tracking code alone grants no access; ordinary views exclude protected identity.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.03",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-03.04",
+      "id": "AM-03-04",
       "title": "Attachment and evidence bridge",
       "dependsOn": [
-        "AM-03.01",
-        "AM-02.02"
+        "AM-03-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Quarantined files remain inaccessible and no copy loses its intake source version.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.04",
+      "externalDependencies": [],
+      "externalPrerequisites": [
+        "Required original cross-project milestone AM-02.02 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked"
+      ],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-03.05",
+      "id": "AM-03-05",
       "title": "Triage and investigation initiation",
       "dependsOn": [
-        "AM-03.01",
-        "AM-03.02"
+        "AM-03-01",
+        "AM-03-02"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Accepted reports produce an investigation plan; queued or out-of-scope outcomes have a visible reason.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.05",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-03.06",
+      "id": "AM-03-06",
       "title": "Participant follow up",
       "dependsOn": [
-        "AM-03.01",
-        "AM-03.03"
+        "AM-03-01",
+        "AM-03-03"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Status-only participants cannot read internal messages; permitted participants can correct an account.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.06",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-03.07",
+      "id": "AM-03-07",
       "title": "Deadlines referrals and review",
       "dependsOn": [
-        "AM-03.01"
+        "AM-03-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Recipient-specific deadlines remain independent; referral dispatch requires an authorized channel.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.07",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-03.08",
+      "id": "AM-03-08",
       "title": "Intake end to end acceptance",
       "dependsOn": [
-        "AM-03.01",
-        "AM-03.02",
-        "AM-03.03",
-        "AM-03.04",
-        "AM-03.05",
-        "AM-03.06",
-        "AM-03.07"
+        "AM-03-01",
+        "AM-03-02",
+        "AM-03-03",
+        "AM-03-04",
+        "AM-03-05",
+        "AM-03-06",
+        "AM-03-07"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Complete a realistic neutral case with failed scanner, recovered worker and denied cross-case access.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-03.08",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.01",
+      "id": "AM-05-01",
       "title": "Entity event and claim model",
-      "dependsOn": [
-        "AM-02.03",
-        "AM-02.04",
-        "AM-04.04"
-      ],
+      "dependsOn": [],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Unknown dates remain unknown and entity match ambiguity is reviewable and reversible.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.01",
+      "externalDependencies": [],
+      "externalPrerequisites": [
+        "Required original cross-project milestone AM-02.03 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked",
+        "Required original cross-project milestone AM-02.04 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked",
+        "Required original cross-project milestone AM-04.04 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked"
+      ],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.02",
+      "id": "AM-05-02",
       "title": "Evidence link and source dependence",
       "dependsOn": [
-        "AM-05.01"
+        "AM-05-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Copied reports cannot inflate corroboration and unsupported links fail validation.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.02",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.03",
+      "id": "AM-05-03",
       "title": "Question and hypothesis planning",
       "dependsOn": [
-        "AM-05.01"
+        "AM-05-01"
       ],
       "contributingPrs": [
         1,
@@ -167,44 +218,60 @@
       "acceptanceCriteria": [
         "A report becomes a plan including at least one route for testing contrary evidence where applicable.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.03",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.04",
+      "id": "AM-05-04",
       "title": "Claim extraction and answer proposals",
       "dependsOn": [
-        "AM-05.01",
-        "AM-05.02",
-        "AM-04.05"
+        "AM-05-01",
+        "AM-05-02"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Every accepted proposal resolves to the original span; invented citations are rejected.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.04",
+      "externalDependencies": [],
+      "externalPrerequisites": [
+        "Required original cross-project milestone AM-04.05 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked"
+      ],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.05",
+      "id": "AM-05-05",
       "title": "Verification and challenge workflow",
       "dependsOn": [
-        "AM-05.01",
-        "AM-05.04"
+        "AM-05-01",
+        "AM-05-04"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "A contradicted or unresolved assertion cannot silently become a verified finding.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.05",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.06",
+      "id": "AM-05-06",
       "title": "Investigation completeness and closure",
       "dependsOn": [
-        "AM-05.01",
-        "AM-05.03",
-        "AM-05.05"
+        "AM-05-01",
+        "AM-05-03",
+        "AM-05-05"
       ],
       "contributingPrs": [
         2,
@@ -215,189 +282,258 @@
       "acceptanceCriteria": [
         "Material unanswered questions are explicitly unresolved, deferred or assigned before closure.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.06",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.07",
+      "id": "AM-05-07",
       "title": "Evidence reports and referral packages",
       "dependsOn": [
-        "AM-05.01"
+        "AM-05-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Export includes contrary material, attribution limits and exact evidence versions within its authorized scope.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.07",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-05.08",
+      "id": "AM-05-08",
       "title": "Correction impact computation",
       "dependsOn": [
-        "AM-05.01",
-        "AM-05.02",
-        "AM-05.03",
-        "AM-05.04",
-        "AM-05.05",
-        "AM-05.06",
-        "AM-05.07"
+        "AM-05-01",
+        "AM-05-02",
+        "AM-05-03",
+        "AM-05-04",
+        "AM-05-05",
+        "AM-05-06",
+        "AM-05-07"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "A corrected date finds all affected claims, findings and draft outputs while leaving unrelated work usable.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-05.08",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.01",
+      "id": "AM-06-01",
       "title": "Mailbox and sender model",
       "dependsOn": [
-        "AM-01.03",
-        "AM-01.04",
-        "AM-05.03"
+        "AM-05-03"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Mailbox credentials cannot be retrieved by a research agent or another project.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.01",
+      "externalDependencies": [],
+      "externalPrerequisites": [
+        "Required original cross-project milestone AM-01.03 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked",
+        "Required original cross-project milestone AM-01.04 is not yet mapped to a verified upstream repo/unit; block this unit until source evidence is linked"
+      ],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.02",
+      "id": "AM-06-02",
       "title": "Gmail synchronization adapter",
       "dependsOn": [
-        "AM-06.01"
+        "AM-06-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Duplicate, missing and out-of-order notifications converge to one consistent mailbox view.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.02",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.03",
+      "id": "AM-06-03",
       "title": "Delivery gateway and uncertain sends",
       "dependsOn": [
-        "AM-06.01",
-        "AM-06.02"
+        "AM-06-01",
+        "AM-06-02"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "A provider timeout does not trigger blind duplicate sends; uncertain state is visible and resolved.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.03",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.04",
+      "id": "AM-06-04",
       "title": "Ordinary email workspace",
       "dependsOn": [
-        "AM-06.01",
-        "AM-06.02"
+        "AM-06-01",
+        "AM-06-02"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "A user can read, find, reply, forward and manage a conversation without learning an agent-specific interface.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.04",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.05",
+      "id": "AM-06-05",
       "title": "Human takeover and race fencing",
       "dependsOn": [
-        "AM-06.01",
-        "AM-06.03",
-        "AM-06.04"
+        "AM-06-01",
+        "AM-06-03",
+        "AM-06-04"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Takeover-before-dispatch prevents send; takeover-after-provider-acceptance reports in-flight state accurately.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.05",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.06",
+      "id": "AM-06-06",
       "title": "Relevant contact discovery",
       "dependsOn": [
-        "AM-06.01"
+        "AM-06-01"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Every candidate has question relevance and a source; ambiguous or private scraped contacts are excluded from automatic sending.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.06",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.07",
+      "id": "AM-06-07",
       "title": "Concise truthful question drafting",
       "dependsOn": [
-        "AM-06.01",
-        "AM-06.06"
+        "AM-06-01",
+        "AM-06-06"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "Evaluation rejects invented affiliation, unnecessary case disclosure, promotional copy and excessively long first messages.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.07",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.08",
+      "id": "AM-06-08",
       "title": "Autonomous outreach policy",
       "dependsOn": [
-        "AM-06.01",
-        "AM-06.05",
-        "AM-06.07"
+        "AM-06-01",
+        "AM-06-05",
+        "AM-06-07"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "A refusal or suppression cancels pending follow-ups and blocks alternate-agent retries to the same person.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.08",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.09",
+      "id": "AM-06-09",
       "title": "Reply ingestion and validation loop",
       "dependsOn": [
-        "AM-06.01",
-        "AM-05.05",
-        "AM-06.08"
+        "AM-06-01",
+        "AM-05-05",
+        "AM-06-08"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "One reply creates sourced answer proposals without automatic truth promotion; restricted-use replies remain restricted.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.09",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     },
     {
-      "id": "AM-06.10",
+      "id": "AM-06-10",
       "title": "Second provider and secure portal bridge",
       "dependsOn": [
-        "AM-06.01",
-        "AM-06.02",
-        "AM-06.03",
-        "AM-06.04",
-        "AM-06.05",
-        "AM-06.06",
-        "AM-06.07",
-        "AM-06.08",
-        "AM-06.09"
+        "AM-06-01",
+        "AM-06-02",
+        "AM-06-03",
+        "AM-06-04",
+        "AM-06-05",
+        "AM-06-06",
+        "AM-06-07",
+        "AM-06-08",
+        "AM-06-09"
       ],
       "contributingPrs": [],
       "implementationStatus": "planned",
       "acceptanceCriteria": [
         "The same inbox actions and takeover tests pass across providers; sensitive text stays out of email notifications.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
-      ]
+      ],
+      "legacyWorkUnitId": "AM-06.10",
+      "externalDependencies": [],
+      "externalPrerequisites": [],
+      "prs": [],
+      "origin": "original"
     }
   ],
-  "scopeNote": "Original E08 task IDs/dependencies; count is requirement units, not accepted PRs. Full15-engine/122-task approved design preserved byte-for-byte. Pure planning is only partial AM-05.03."
+  "scopeNote": "Original E08 task IDs/dependencies; count is requirement units, not accepted PRs. Full15-engine/122-task approved design preserved byte-for-byte. Pure planning is only partial AM-05.03.",
+  "roadmapVersion": 1,
+  "observedAt": "2026-11-01T20:45:00Z",
+  "pullRequests": []
 }
