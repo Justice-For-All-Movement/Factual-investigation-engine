@@ -29,3 +29,5 @@ Durable effort metadata is now partially implemented in EFFORT_REPOSITORY.md; ea
 Explicit opt-in current stored Identity/resource-policy integration is now documented in IDENTITY_REPOSITORY.md; earlier Identity-pending notes still apply to direct legacy repository access. Host proofing/current upstream/consent/rights and production qualification remain pending.
 
 CURRENT_KNOWLEDGE.md documents the explicit accepted Knowledge pin upgrade and appendFromKnowledge integration. Legacy snapshot APIs still require separately authorized host snapshots; current Knowledge composition does not qualify Evidence/Intake, consent/rights, login or production.
+
+POSTGRES_TESTS.md defines opt-in owning Factual session qualification. The first source checkpoint passes49 local ordinary tests and strict integration compilation; actual PostgreSQL CI/source review remain pending. Runtime and pins are unchanged.

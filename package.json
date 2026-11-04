@@ -33,7 +33,8 @@
     "test": "node --test --test-concurrency=1 tests/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build && node scripts/validate-pr-registry.mjs",
     "build": "tsc -p tsconfig.build.json",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test:postgres": "npm run typecheck && node --test integration/postgres-factual.test.ts"
   },
   "devDependencies": {
     "@types/node": "26.6.5",
