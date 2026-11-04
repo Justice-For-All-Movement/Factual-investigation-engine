@@ -1,0 +1,42 @@
+{
+  "scope": "Partial AM-05.03 current owning plan Knowledge dependency review",
+  "local": {
+    "tests": 52,
+    "newRestrictedThreeDbGroups": 3,
+    "typecheckBuildRegistry": "passed"
+  },
+  "installed": {
+    "publicExportTests": 52,
+    "completeTap": true,
+    "identityRepositoryJsByteMatch": true
+  },
+  "ci": "Initial source workflow passed52 ordinary tests and seven existing actual PostgreSQL17 groups; raw head and logs inspected; final-head CI required.",
+  "review": [
+    "Captured inputs and bound existing owning receivers; actual public validators and own stored plan history",
+    "Fresh Factual authority before and after configured current Knowledge load; no snapshot fallback",
+    "One total monotonic review acceptance budget, final-copy gate, begun SQL awaited; unknown read is not rollback",
+    "No new domain mutation/effect, SDK pin, contract or schema change; historical exact references retained",
+    "Substantive source review: no unresolved finding; exact historical traversal and refreshed owning authority retained."
+  ],
+  "limits": [
+    "Sequential observations, not distributed fence or current upstream permission guarantee after its load",
+    "Host proofing, configuration, clocks, CPU/heap and SQL driver limits required",
+    "No Evidence/consent/rights source truth, answers, closure, full AM-05.08 or Editorial acceptance",
+    "No new TCP/browser/AT/live qualification; neutral/private/no send publication payment PAM change"
+  ],
+  "sourceSha256": {
+    "src/identity-repository.ts": "f9fdb51112ff7b9138751edd2da77f77e4959ec8f11b6c9fee79bb39b83b132a",
+    "tests/identity-repository.test.ts": "d92a4fe07dba84b199066f5e44263c0f79a6e3d2c78e8335e3a214a4999d2bfe",
+    "docs/CURRENT_KNOWLEDGE.md": "7334ae4a97490cece37a02574dfd7efa5ce389ca189b02e94fb926b5af791f38",
+    "docs/ARCHITECTURE.md": "a30268934053238f89e9dba9c3a5378876492d1fad36eaf105ceed72a20c2954",
+    "registry/prs.json": "bea9a98e8739709ee53df52cd9cfe26e051b5b17dac295cb4afe10d716e9bee4"
+  },
+  "initialCi": {
+    "run": 41810415678,
+    "source": "5cc5e88627f73b48f1fef48feee3a391c69e3d44",
+    "check": 126507962513,
+    "postgres": 126508077851,
+    "requiredFinalHead": "must pass actual branch requirements before expected-head merge",
+    "headAndLogsInspected": true
+  }
+}
