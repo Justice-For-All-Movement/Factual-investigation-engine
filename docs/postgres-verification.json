@@ -1,0 +1,55 @@
+{
+  "scope": "Partial AM-05.03/06 owning Factual PostgreSQL session qualification",
+  "runtimeChange": false,
+  "local": {
+    "ordinaryTests": 49,
+    "typecheckBuildRegistry": "passed",
+    "strictIntegrationCompile": "passed",
+    "unsafeConfigChildCases": 4,
+    "postgres": "unavailable",
+    "docker": "unavailable",
+    "newInstalledRuntimeClaim": false
+  },
+  "initialCi": {
+    "source": "8df2502432a1374f1e2a6bdc116d570668dcb963",
+    "run": 41788651119,
+    "check": 126436572792,
+    "postgres": 126436572625,
+    "ordinaryTests": 49,
+    "actualPostgres17Groups": 5,
+    "logsInspected": true
+  },
+  "expandedCi": {
+    "source": "ae811a4ca55b86236d738e0ae4e7f544979adf76",
+    "run": 41788854898,
+    "check": 126437240595,
+    "postgres": 126437240915,
+    "actualPostgres17Groups": 7,
+    "headAndLogsInspected": true,
+    "conclusion": "success"
+  },
+  "review": [
+    "Actual canonical stable SDK migration in explicitly disposable empty loopback factual_ci; no reset, restricted authenticated LOGIN and distinct backend PIDs",
+    "Public command transactions held before COMMIT; independent observer requires actual PostgreSQL Lock and nonempty blocking PIDs before release, not elapsed time",
+    "Lost acknowledgements injected only AFTER actual database transaction COMMIT; fresh-pool original historical replay cannot duplicate history/audit/effect",
+    "Plan and effort CAS, stale-plan rejection, correction fork rejection and coherent owning read editions; successful audits/outbox counts and denied audit rollback",
+    "Actual owning adapters reject admin AND role-lowered admin; restricted LOGIN cannot create public table or assume postgres; unscoped reads empty versus two positive same-key projects",
+    "Runtime/API/dependency pins/contracts/migration unchanged; prior PR9 registry repair and legacy IDs preserved"
+  ],
+  "limits": [
+    "Context/GUC and pure Knowledge fixtures are trusted host input, not authentication or upstream attestation",
+    "Historical acknowledgements and unresolved effort metadata are not work/coverage/claim/closure proof or action permits",
+    "Only seven named TCP cases; no Identity/upstream/consent/rights network, production TLS/failover/crash/throughput/multinode/browser/AT/live qualification",
+    "No provider sends/publication/payments/PAM changes"
+  ],
+  "mergeAcceptance": "Actual final-head checks and branch rules required before expected-head merge",
+  "sourceSha256": {
+    "integration/postgres-factual.test.ts": "c35799ffb349751fc1bd91251115dce9ef48a55f073ab4b3e70bd2d2e8455bc7",
+    "tests/postgres-fixture.test.ts": "565d60f00f1ee6ddb237e1d628ca732fcff4ddbe3f2c3b7750a75a3e8d64bbeb",
+    "package.json": "d0f6d7c9a4487e6dc58fb96c3b35d2da0b5930324f11e30e6340d7aa913c7ac2",
+    ".github/workflows/check.yml": "4ee51dad17ac9860ef072d7a00056fd0c3ed5c9576da562d7eba3d91af43bcf6",
+    "docs/POSTGRES_TESTS.md": "dae96c466fd45aa53a9cd6374ec7948fba0cca0b213aef8aa621d018e4c40401",
+    "docs/ARCHITECTURE.md": "d7c13cc6d68cf6f751f21eadc1e34cfff372df60922717b20afb26c466f25b54",
+    "registry/prs.json": "17e8e80f4c22d169157bd7e2d9feb25685daa03e3d8efbef3a07ac61daeee28a"
+  }
+}

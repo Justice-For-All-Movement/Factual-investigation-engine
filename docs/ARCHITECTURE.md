@@ -30,4 +30,4 @@ Explicit opt-in current stored Identity/resource-policy integration is now docum
 
 CURRENT_KNOWLEDGE.md documents the explicit accepted Knowledge pin upgrade and appendFromKnowledge integration. Legacy snapshot APIs still require separately authorized host snapshots; current Knowledge composition does not qualify Evidence/Intake, consent/rights, login or production.
 
-POSTGRES_TESTS.md defines opt-in owning Factual session qualification. The source checkpoint passes49 local ordinary tests and strict integration compilation; actual PostgreSQL CI/source review remain pending. Runtime and pins are unchanged.
+POSTGRES_TESTS.md defines opt-in owning Factual session qualification. The source checkpoint passes49 local ordinary tests and strict integration compilation; expanded actual PostgreSQL17 CI passes seven scenarios; source review no unresolved finding; final-head CI remains required. Runtime and pins are unchanged.
