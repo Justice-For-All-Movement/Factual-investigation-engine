@@ -1,8 +1,10 @@
+import { reviewPlanKnowledge } from "./knowledge-review.ts";
 import type { IdentityKnowledgeRepository } from "@accountability/knowledge-verification/identity-repository";
 import type { KnowledgeState } from "@accountability/knowledge-verification";
 import type { EffortInput } from "./efforts.ts";
 import type { MembershipRegistry } from "@accountability/identity-policy/membership";
 import {
+  canonical,
   digest,
   invariant,
   nonempty,
@@ -10,6 +12,7 @@ import {
 } from "@accountability/knowledge-verification/contracts";
 import type {
   Context,
+  Ref,
   Scope,
 } from "@accountability/knowledge-verification/contracts";
 import type { FactualRepository, PlanningCommand } from "./repository.ts";
@@ -176,5 +179,62 @@ export class IdentityFactualRepository {
       q,
       commandId,
     );
+  }
+  /** Read-only owning plan/Knowledge dependency review; no caller snapshots or fallback. */
+  async reviewKnowledge(
+    context: Context,
+    selectedPlan: Ref,
+    signal?: AbortSignal,
+  ) {
+    const started = performance.now(),
+      c = structuredClone(context),
+      selected = structuredClone(selectedPlan);
+    const gate = () =>
+      invariant(
+        !signal?.aborted && performance.now() - started < this.#timeout,
+        "knowledge_unavailable",
+        "Current Knowledge review unavailable",
+      );
+    gate();
+    const actual = await this.#context(c, signal);
+    const before = await this.#load(actual);
+    gate();
+    invariant(
+      this.#knowledge,
+      "knowledge_unavailable",
+      "Current Knowledge observation unavailable",
+    );
+    let source: Awaited<ReturnType<IdentityKnowledgeRepository["load"]>>;
+    try {
+      source = structuredClone(await this.#knowledge(actual, signal));
+      gate();
+    } catch {
+      invariant(
+        false,
+        "knowledge_unavailable",
+        "Current Knowledge observation unavailable",
+      );
+    }
+    const fresh = await this.#context(actual, signal);
+    const after = await this.#load(fresh);
+    gate();
+    invariant(
+      canonical(before) === canonical(after),
+      "planning_changed",
+      "Planning history changed during Knowledge observation",
+    );
+    const review = reviewPlanKnowledge(
+      fresh,
+      source.state,
+      after.state,
+      selected,
+    );
+    const result = structuredClone({
+      planningRevision: after.revision,
+      knowledgeRevision: source.revision,
+      review,
+    });
+    gate();
+    return result;
   }
 }

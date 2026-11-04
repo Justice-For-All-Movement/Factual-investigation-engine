@@ -469,3 +469,138 @@ test("current Knowledge path captures inputs, preserves lost Factual commit hist
   });
   assert.equal((await f.repo.load(c)).revision, 1);
 });
+
+async function reviewFixture(t: test.TestContext) {
+  const f = await fixture(t, true),
+    x = input();
+  await f.membership.setResourcePolicy(c, 0, f.policy, "allow-factual");
+  await f.membership.setResourcePolicy(
+    c,
+    1,
+    { ...f.policy, resourceId: KNOWLEDGE_RESOURCE_ID },
+    "allow-source",
+  );
+  await f.kRepo!.append(
+    c,
+    0,
+    { id: "claim", expectedRevision: 0, value: claim },
+    "claim",
+  );
+  const facade = new IdentityFactualRepository(
+    f.repo,
+    f.membership,
+    f.fixed,
+    10000,
+    f.kFacade!,
+  );
+  const plan = (await facade.appendFromKnowledge(c, 0, x.command, "plan"))
+    .record;
+  return { ...f, x, facade, plan };
+}
+test("owning dependency review reports exact stored editions and current changed claims without mutating plans", async (t) => {
+  const f = await reviewFixture(t);
+  const first = await f.facade.reviewKnowledge(c, f.plan);
+  assert.equal(first.planningRevision, 1);
+  assert.equal(first.knowledgeRevision, 1);
+  assert.equal(first.review.nodes[0]!.status, "current-edition");
+  await f.kRepo!.append(
+    c,
+    1,
+    { id: "claim", expectedRevision: 1, value: claim },
+    "changed",
+  );
+  const result = await f.facade.reviewKnowledge(
+    { ...c, actor: { ...c.actor, roles: [] } },
+    f.plan,
+  );
+  assert.equal(result.knowledgeRevision, 2);
+  assert.equal(result.review.nodes[0]!.status, "changed-edition");
+  assert.equal(result.review.nodes[0]!.ref.revision, 1);
+  assert.equal(result.review.nodes[0]!.latestRef!.revision, 2);
+  (result.review.nodes as unknown[]).length = 0;
+  assert.equal(
+    (await f.facade.reviewKnowledge(c, f.plan)).review.nodes.length,
+    1,
+  );
+  assert.equal((await f.repo.load(c)).revision, 1);
+  await assert.rejects(
+    f.facade.reviewKnowledge(c, { ...f.plan, projectId: "foreign" }),
+    { code: "scope_denied" },
+  );
+  await assert.rejects(
+    new IdentityFactualRepository(
+      f.repo,
+      f.membership,
+      f.fixed,
+    ).reviewKnowledge(c, f.plan),
+    { code: "knowledge_unavailable" },
+  );
+});
+test("owning review denies source revocation unknown acknowledgement cancellation and changed planning basis", async (t) => {
+  const f = await reviewFixture(t);
+  f.hooks.knowledge = () => {
+    throw Error("private SQL detail");
+  };
+  await assert.rejects(f.facade.reviewKnowledge(c, f.plan), {
+    code: "knowledge_unavailable",
+    message: "Current Knowledge observation unavailable",
+  });
+  const control = new AbortController();
+  f.hooks.knowledge = () => control.abort();
+  await assert.rejects(f.facade.reviewKnowledge(c, f.plan, control.signal), {
+    code: "knowledge_unavailable",
+  });
+  f.hooks.knowledge = async () => {
+    f.hooks.knowledge = null;
+    await f.repo.append(
+      c,
+      1,
+      f.x.knowledge,
+      { ...f.x.command, id: "another" },
+      "another",
+    );
+  };
+  await assert.rejects(f.facade.reviewKnowledge(c, f.plan), {
+    code: "planning_changed",
+  });
+  assert.equal((await f.repo.load(c)).revision, 2);
+  await f.membership.setResourcePolicy(
+    c,
+    2,
+    { ...f.policy, resourceId: KNOWLEDGE_RESOURCE_ID, actions: [] },
+    "revoke-source",
+  );
+  await assert.rejects(f.facade.reviewKnowledge(c, f.plan), {
+    code: "knowledge_unavailable",
+  });
+});
+test("owning review reauthorizes Factual after Knowledge and fences late acknowledged reads", async (t) => {
+  const f = await reviewFixture(t);
+  f.hooks.knowledge = () => {
+    const end = performance.now() + 100;
+    while (performance.now() < end) {}
+  };
+  const bounded = new IdentityFactualRepository(
+    f.repo,
+    f.membership,
+    f.fixed,
+    50,
+    f.kFacade!,
+  );
+  await assert.rejects(bounded.reviewKnowledge(c, f.plan), {
+    code: "knowledge_unavailable",
+  });
+  f.hooks.knowledge = async () => {
+    f.hooks.knowledge = null;
+    await f.membership.setResourcePolicy(
+      c,
+      2,
+      { ...f.policy, actions: [] },
+      "revoke-factual",
+    );
+  };
+  await assert.rejects(f.facade.reviewKnowledge(c, f.plan), {
+    code: "identity_unavailable",
+  });
+  assert.equal((await f.repo.load(c)).revision, 1);
+});
