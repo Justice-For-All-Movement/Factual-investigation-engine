@@ -83,11 +83,13 @@ export function createEngine(deps: EngineDeps) {
   const engineRules = { requireDistinctReviewer: config.requireDistinctReviewer !== false, autoAcceptCeiling: config.autoAcceptCeiling ?? 25 };
 
   // ── plumbing ──
-  function cmd<T>(ctx: ServiceContext, capability: string, op: string, input: unknown, fn: (tx: Sql) => Promise<T>): Promise<T> {
+  async function cmd<T>(ctx: ServiceContext, capability: string, op: string, input: unknown, fn: (tx: Sql) => Promise<T>): Promise<T> {
     requireCapability(ctx, capability);
-    const key = input !== null && typeof input === 'object' ? (input as Body).idempotencyKey : undefined;
+    const outer = input !== null && typeof input === 'object' ? input as Body : {};
+    const inner = [outer, outer.input, outer.patch].find((v) => v !== null && typeof v === 'object' && (v as Body).idempotencyKey !== undefined) as Body | undefined;
+    const key = inner?.idempotencyKey;
     invariant(key === undefined || typeof key === 'string', 'invalid_input', 'Invalid idempotency key');
-    return sql.tx((tx) => idempotent(tx, S, ctx, key as string | undefined, { op, input }, async () => JSON.parse(JSON.stringify(await fn(tx))) as Json)) as unknown as Promise<T>;
+    return await sql.tx((tx) => idempotent(tx, S, ctx, key as string | undefined, { op, input }, async () => JSON.parse(JSON.stringify(await fn(tx))) as Json)) as unknown as T;
   }
   const emit = (tx: Sql, ctx: ServiceContext, type: string, subject: string, payload: Json): Promise<EngineEvent> => emitEvent(tx, S, ctx, type, subject, payload);
   /** mode: read | lock (row lock) | mutate (row lock and the investigation must not be closed). */
@@ -718,7 +720,7 @@ export function createEngine(deps: EngineDeps) {
       if (ports.knowledge === undefined) notes.push('KnowledgePort is not configured: knowledge gaps were not consulted.');
       else try {
         gaps = [...await ports.knowledge.getGaps(ctx, { subject: uref(EID, 'investigation', investigationId), claimRefs })].sort((a, b) => a.id.localeCompare(b.id));
-        gapAttempt = { kind: 'knowledge', target: `${claimRefs.length} claim(s)`, method: 'knowledge.get_gaps', outcome: gaps.length === 0 ? 'zero_result' : 'succeeded', detail: `${gaps.length} gap(s) reported`, effort: { attempts: 1 } };
+        gapAttempt = { kind: 'knowledge', target: `${claimRefs.length} claim(s)`, method: 'knowledge.get_gaps', outcome: 'succeeded', detail: `${gaps.length} gap(s) reported`, effort: { attempts: 1 } };
       } catch (error) { const f = failure(error, 'knowledge.get_gaps', false); gapAttempt = { kind: 'knowledge', target: `${claimRefs.length} claim(s)`, method: 'knowledge.get_gaps', outcome: f.outcome, detail: f.detail }; notes.push(`Knowledge gaps could not be consulted (${f.outcome}).`); }
       return sql.tx(async (tx) => {
         const i = await inv(tx, ctx, investigationId, 'mutate');
@@ -946,7 +948,7 @@ export function createEngine(deps: EngineDeps) {
         const affected: string[] = [], staleFindings = new Set<string>();
         const rows = await tx.query<{ id: string }>(`select id from ${S}.records where tenant_id=$1 and project_id=$2 and kind='finding' and state <> 'withdrawn' and exists (select 1 from unnest(sources) x where split_part(x,'@',1) = any($3)) order by seq for update`, [...scope(ctx), bare]);
         for (const row of rows) {
-          const f = await loadRec<FindingData>(tx, { ...ctx, compartments: [] } as ServiceContext, 'finding', row.id).catch(() => null) ?? await rawFinding(tx, ctx, row.id);
+          const f = await rawFinding(tx, ctx, row.id);
           const matched = hit(f.sources);
           if (matched.length === 0) continue;
           await flagRec(tx, ctx, f, { effect, kind, reason, cause: eventId, refs: matched, at: ctx.now });
