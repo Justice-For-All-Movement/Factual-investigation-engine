@@ -23,6 +23,18 @@
     "./identity-repository": {
       "types": "./dist/identity-repository.d.ts",
       "default": "./dist/identity-repository.js"
+    },
+    "./engine": {
+      "types": "./dist/engine/index.d.ts",
+      "default": "./dist/engine/index.js"
+    },
+    "./serve": {
+      "types": "./dist/engine/serve.d.ts",
+      "default": "./dist/engine/serve.js"
+    },
+    "./service-kit": {
+      "types": "./dist/service-kit.d.ts",
+      "default": "./dist/service-kit.js"
     }
   },
   "engines": {
@@ -34,12 +46,14 @@
     "check": "npm run typecheck && npm test && npm run build && node scripts/validate-pr-registry.mjs",
     "build": "tsc -p tsconfig.build.json",
     "prepare": "npm run build",
-    "test:postgres": "npm run typecheck && node --test integration/postgres-factual.test.ts"
+    "test:postgres": "npm run typecheck && node --test integration/postgres-factual.test.ts",
+    "serve": "node src/engine/serve.ts"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.12",
     "@types/node": "26.6.5",
-    "typescript": "7.0.2",
-    "@electric-sql/pglite": "0.5.12"
+    "@types/pg": "8.23.1",
+    "typescript": "7.0.2"
   },
   "files": [
     "dist",
@@ -47,8 +61,9 @@
     "docs"
   ],
   "dependencies": {
-    "@accountability/knowledge-verification": "git+https://github.com/neophilism/Knowledge-and-verification-engine.git#cb69243a48578feb07e85704185cced98964b1e4",
-    "@accountability/evidence-sql": "git+https://github.com/neophilism/Evidence-Storage-and-Provenance-Engine.git#dce7105a70b42d77afe4cd48d34723331447037c",
-    "@accountability/identity-policy": "git+https://github.com/neophilism/Identity-Authorization-and-Policy-Engine.git#763060ddc840979b56483afd830f78679a2369b0"
+    "@accountability/evidence-sql": "git+https://github.com/Justice-For-All-Movement/Evidence-Storage-and-Provenance-Engine.git#dce7105a70b42d77afe4cd48d34723331447037c",
+    "@accountability/identity-policy": "git+https://github.com/Justice-For-All-Movement/Identity-Authorization-and-Policy-Engine.git#763060ddc840979b56483afd830f78679a2369b0",
+    "@accountability/knowledge-verification": "git+https://github.com/Justice-For-All-Movement/Knowledge-and-verification-engine.git#cb69243a48578feb07e85704185cced98964b1e4",
+    "pg": "8.23.1"
   }
 }
