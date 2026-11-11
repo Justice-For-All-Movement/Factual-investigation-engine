@@ -290,7 +290,11 @@
       "externalDependencies": [],
       "externalPrerequisites": [],
       "prs": [],
-      "origin": "original"
+      "origin": "original",
+      "capturedCoverage": {
+        "docs": "docs/CAPTURED_COVERAGE.md",
+        "status": "Incomplete WIP: three focused synthetic local groups/typecheck/build/registry qualified; package/full/CI/source review pending. No authentication/current service/verification/closure/full task acceptance."
+      }
     },
     {
       "id": "AM-05-07",

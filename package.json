@@ -23,6 +23,10 @@
     "./identity-repository": {
       "types": "./dist/identity-repository.d.ts",
       "default": "./dist/identity-repository.js"
+    },
+    "./coverage": {
+      "types": "./dist/coverage.d.ts",
+      "default": "./dist/coverage.js"
     }
   },
   "engines": {
