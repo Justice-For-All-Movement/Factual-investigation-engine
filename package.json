@@ -27,6 +27,10 @@
     "./coverage": {
       "types": "./dist/coverage.d.ts",
       "default": "./dist/coverage.js"
+    },
+    "./coverage-http": {
+      "types": "./dist/coverage-http.d.ts",
+      "default": "./dist/coverage-http.js"
     }
   },
   "engines": {

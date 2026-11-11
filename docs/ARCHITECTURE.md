@@ -39,3 +39,5 @@ CAPTURED_COVERAGE.md documents explicitly incomplete private coverage-table work
 PR12 captured coverage acceptedddaf10d after58ordinary+7existingPG17 CI. OWNING_COVERAGE.md documents incomplete coherent own-DB coverage reads with optional current Identity before/after; no source/work proof or full closure/correction impact qualification. KnowledgePR32 accepted00b743247176e939bf08b40c3a1dd844d722340e after217+13existingPG17 CI; no dependency pin upgrade is implied.
 
 PR13 accepted782d414f after64ordinary+7existingPG17 CI. POSTGRES_TESTS.md records incomplete test-only owning coverage contention/expiry/lost-read-COMMIT qualification; no runtime or full workflow qualification is implied.
+
+PR14 accepted77a1683e3f4406f37af2693780006182f73fc51d after64ordinary+11PG17 final-head CI. COVERAGE_HTTP.md describes incomplete private current-human native Fetch coverage reads; no closure/work-proof/SourceConsent or deployed hosting qualification.
