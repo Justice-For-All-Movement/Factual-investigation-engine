@@ -43,7 +43,7 @@ export class IdentityQuestionDispositionRepository {
       "Bounded deadline required",
     );
   }
-  #start(context: Context, signal?: AbortSignal) {
+  #start(context: Context, signal?: AbortSignal, admit?: () => void) {
     const started = performance.now(),
       c = structuredClone(context);
     requireScope(this.#policy, c);
@@ -52,12 +52,20 @@ export class IdentityQuestionDispositionRepository {
       "disposition_unavailable",
       "Current disposition authority unavailable",
     );
-    const gate = () =>
+    const gate = () => {
       invariant(
         !signal?.aborted && performance.now() - started < this.#timeout,
         "disposition_unavailable",
         "Current disposition operation unavailable",
       );
+      const value: unknown = admit?.();
+      if (value instanceof Promise) void value.catch(() => {});
+      invariant(
+        value === undefined,
+        "disposition_unavailable",
+        "Synchronous void admission required",
+      );
+    };
     const remaining = () =>
       Math.max(1, Math.ceil(this.#timeout - (performance.now() - started)));
     gate();
@@ -95,9 +103,14 @@ export class IdentityQuestionDispositionRepository {
       "Exact positive plan required",
     );
   }
-  async load(context: Context, selected: Ref, signal?: AbortSignal) {
+  async load(
+    context: Context,
+    selected: Ref,
+    signal?: AbortSignal,
+    admit?: () => void,
+  ) {
     try {
-      const { c, gate, remaining } = this.#start(context, signal),
+      const { c, gate, remaining } = this.#start(context, signal, admit),
         choice = structuredClone(selected);
       this.#selection(c, choice);
       gate();

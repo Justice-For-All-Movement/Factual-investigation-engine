@@ -43,6 +43,10 @@
     "./disposition-identity": {
       "types": "./dist/disposition-identity.d.ts",
       "default": "./dist/disposition-identity.js"
+    },
+    "./disposition-read-http": {
+      "types": "./dist/disposition-read-http.d.ts",
+      "default": "./dist/disposition-read-http.js"
     }
   },
   "engines": {
