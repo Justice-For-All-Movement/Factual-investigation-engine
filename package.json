@@ -39,6 +39,10 @@
     "./disposition-repository": {
       "types": "./dist/disposition-repository.d.ts",
       "default": "./dist/disposition-repository.js"
+    },
+    "./disposition-identity": {
+      "types": "./dist/disposition-identity.d.ts",
+      "default": "./dist/disposition-identity.js"
     }
   },
   "engines": {

@@ -1,0 +1,23 @@
+{
+  "profile": "disposition-identity-verification-v1",
+  "status": "incomplete; full/current-head CI pending",
+  "focusedLocal": 7,
+  "packedCompiledGroups": 7,
+  "publicDeclarations": "pass",
+  "runtimeByteMatch": [
+    "disposition-identity.js",
+    "disposition-repository.js"
+  ],
+  "consumerSetup": "unpacked pack plus copied prepared dependencies, not fresh install",
+  "sourceReview": "clear limited sequential currentIdentity profile; not SourceConsent/closure/live qualification",
+  "sha256": {
+    "docs/ARCHITECTURE.md": "b1d8b7e9cffc53041ae32db7b02d5d2c338b9a9a38fb7e9f6d618c733e4c2412",
+    "package.json": "55c3b18d6e5c846af78ccbca7a1c5354e4986d6e9f7905d7b55a3efd48f97ab4",
+    "registry/prs.json": "959d81bc8afbe645a5073c67f2e6cef292775ee1db631493879fa2ce5b2b693c",
+    "src/disposition-repository.ts": "6cea525a0a7006f646684ce5fd1f6ed33a38d976646f7588c87e29a6943c8921",
+    "docs/DISPOSITION_IDENTITY.md": "0292c1c76ea5dc69e552bf7faf3e6f41dd3cf049dbc3c998dea47fc7d330724e",
+    "src/disposition-identity.ts": "db71787bca6b8083db46877a808ff02b3ff89920097f560881c52e52def232c2",
+    "tests/disposition-identity-fixture.ts": "94c3a6a3d82f4e0e212431543f1feca9a2d9eb2f0a855846cb212f1593763f0f",
+    "tests/disposition-identity.test.ts": "44e04a1e35aefdbe2b7357289dbda504d255ce78ad07eeead09ff8990d96432f"
+  }
+}

@@ -45,3 +45,5 @@ PR14 accepted77a1683e3f4406f37af2693780006182f73fc51d after64ordinary+11PG17 fin
 QUESTION_DISPOSITIONS.md describes incomplete pure captured human unanswered-question dispositions and explicit review/reopening metadata. Existing owning/HTTP/Visual coverage remains unchanged. No closure or AM05.08/Editorial gate acceptance. VisualPR28 source5c47e9173142fc994e3da2e7e9b63b8700e22ba5 merged39758bd73c74904f6a7f23975d2a8561a298ab22 after185ordinary final-head CI/full local check; no consumer pin upgrade here.
 
 DISPOSITION_REPOSITORY.md documents incomplete own-DB question review persistence stacked on purePR16; exact actual planning/effort/review storage basis under a checked project lock. Existing coverage profiles unchanged; no current Identity facade, protected route or full closure/correction-impact qualification.
+
+DISPOSITION_IDENTITY.md describes incomplete opt-in actual current stored Identity/resource guards over accepted PR17. No protected route, source/work proof or closure qualification.
