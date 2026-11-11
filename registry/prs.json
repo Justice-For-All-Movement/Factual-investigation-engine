@@ -330,8 +330,12 @@
       },
       "dispositionIdentity": {
         "docs": "docs/DISPOSITION_IDENTITY.md",
-        "status": "Incomplete;7final actual two-restrictedDBLOCAL+7PACKEDpublic-export groups/declarations/two runtime-byte matches/typecheck/build/registry pass; source-review clear bounded currentIdentity profile. Full/current-head CI pending; no protected route/SourceConsent/closure/live acceptance.",
+        "status": "Accepted PR18 source189e5c6a834a83a4845131fa122a8544ebc0877e/merge926fb5e8a40c6d38e3f98fca7490f0549768df87; all4finalchecks/raw93ordinary+11existingPG17PASS. Full93local/7packed/declarations/two runtime modules qualified; original task partial.",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/18"
+      },
+      "dispositionReadHttp": {
+        "docs": "docs/DISPOSITION_READ_HTTP.md",
+        "status": "Incomplete read-only protected HTTP;6actual two-restrictedDB groups/typecheck/build/registry pass. Expanded/packed/declarations/full/review/current-head CI pending."
       }
     },
     {

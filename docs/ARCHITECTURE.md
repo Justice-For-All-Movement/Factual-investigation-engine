@@ -47,3 +47,5 @@ QUESTION_DISPOSITIONS.md describes incomplete pure captured human unanswered-que
 DISPOSITION_REPOSITORY.md documents incomplete own-DB question review persistence stacked on purePR16; exact actual planning/effort/review storage basis under a checked project lock. Existing coverage profiles unchanged; no current Identity facade, protected route or full closure/correction-impact qualification.
 
 DISPOSITION_IDENTITY.md describes incomplete opt-in actual current stored Identity/resource guards over accepted PR17. No protected route, source/work proof or closure qualification.
+
+Accepted PR18 current Identity facade is qualified at926fb5e after93ordinary+11existingPG17 CI. DISPOSITION_READ_HTTP.md describes incomplete private selected disposition reads; no write/closure/source-workproof/browser/live acceptance.
