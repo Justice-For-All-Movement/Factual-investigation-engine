@@ -30,7 +30,7 @@ async function fixture(t: test.TestContext) {
   const hooks: {
     lost: boolean;
     rollback: boolean;
-    afterAudit: (() => void) | null;
+    afterAudit: (() => void | Promise<void>) | null;
     afterEffect: (() => void) | null;
   } = { lost: false, rollback: false, afterAudit: null, afterEffect: null };
   const db: Database = {
@@ -45,7 +45,7 @@ async function fixture(t: test.TestContext) {
                   values?.includes("factual.question_review.record_checked") ||
                   values?.includes("factual.question_review.read_checked")
                 )
-                  hooks.afterAudit?.();
+                  await hooks.afterAudit?.();
                 if (
                   sql.includes("INSERT INTO public.evidence_outbox") &&
                   values?.includes("factual.question_review.recorded")
@@ -165,6 +165,8 @@ test("actual owning effort or plan changes reject stale new commands, retain old
   );
   let d = await f.repo.load(f.c, f.plan.record);
   assert.equal(d.table.reviewRequired, "basis-changed");
+  assert.deepEqual(await f.repo.record(f.c, 0, f.command, "review"), ack);
+  assert.equal((await f.repo.load(f.c, f.plan.record)).table.history.length, 1);
   assert(d.table.questions.every((q) => q.disposition.status === "unresolved"));
   const next = {
     ...f.command,
@@ -294,4 +296,59 @@ test("foreign or fabricated aggregate editions and corrupted stored history deny
   assert.equal(retained!.revision, 2);
   assert.equal(retained!.value.records.length, 1);
   assert.equal(ack.storage.revision, 1);
+});
+
+test("context, command and fixed host policy are detached before a held owning checked audit", async (t) => {
+  const f = await fixture(t),
+    c = structuredClone(f.c),
+    command = structuredClone(f.command);
+  let release!: () => void, entered!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve)),
+    started = new Promise<void>((resolve) => (entered = resolve));
+  f.hooks.afterAudit = async () => {
+    entered();
+    await held;
+  };
+  const pending = f.repo.record(c, 0, command, "captured");
+  await started;
+  (c as { purpose: string }).purpose = "changed";
+  (c.actor as { id: string }).id = "changed";
+  (command.review.questions[0] as { reason: string }).reason = "mutated";
+  (command.planningStorage as { revision: number }).revision = 99;
+  release();
+  const ack = await pending;
+  f.hooks.afterAudit = null;
+  assert.equal(ack.planningStorage.revision, 1);
+  const d = await f.repo.load(f.c, f.plan.record);
+  assert.equal(d.table.latestReview!.questions[0]!.reason, "Unknown");
+  assert.equal(d.table.latestReview!.actorId, f.c.actor.id);
+  assert.equal(d.table.purpose, f.c.purpose);
+});
+
+test("two owning public writers with the same expected review revision commit one effect without overwrite", async (t) => {
+  const f = await fixture(t);
+  const results = await Promise.allSettled([
+    f.repo.record(f.c, 0, f.command, "contender-a"),
+    f.repo.record(
+      f.c,
+      0,
+      { ...f.command, review: { ...f.input, id: "other-review" } },
+      "contender-b",
+    ),
+  ]);
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  const rejected = results.find(
+    (r) => r.status === "rejected",
+  ) as PromiseRejectedResult;
+  assert.equal(rejected.reason.code, "revision_conflict");
+  const d = await f.repo.load(f.c, f.plan.record);
+  assert.equal(d.storage!.revision, 1);
+  assert.equal(d.table.history.length, 1);
+  assert.equal(
+    (await f.counts()).outbox.filter(
+      (x) => x.topic === "factual.question_review.recorded",
+    ).length,
+    1,
+  );
+  // PGlite queues these transactions; this is not independent TCP-session contention evidence.
 });
