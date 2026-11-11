@@ -57,7 +57,7 @@ export function inspectCapturedInvestigationCoverage(
     "coverage_full",
     "Captured input exceeds metadata budget",
   );
-  let capture: any;
+  let capture: unknown;
   try {
     capture = JSON.parse(captureJson);
   } catch {
@@ -87,8 +87,9 @@ export function inspectCapturedInvestigationCoverage(
     "invalid_reference",
     "Exact plan reference required",
   );
-  const plans = capture.plans as PlanningState,
-    efforts = capture.efforts as EffortState;
+  const data = capture as { plans: PlanningState; efforts: EffortState };
+  const plans = data.plans,
+    efforts = data.efforts;
   const records = inspectPlans(c, plans),
     observed = inspectEfforts(c, efforts);
   const plan = records.find((p) => same(p.ref, choice));

@@ -154,3 +154,130 @@ test("foreign scope, roles, human kind, purpose and unbound effort metadata deny
     { code: "invalid_coverage" },
   );
 });
+
+test("complete output bounds retain unresolved questions and fail rather than truncate exhausted history", () => {
+  const x = fixture(),
+    base = x.efforts.records[0]!;
+  const run = (size: number) => {
+    x.efforts = {
+      ...x.efforts,
+      records: Array.from({ length: 128 }, (_, i) => ({
+        ...structuredClone(base),
+        ref: { ...base.ref, id: "bounded" + i },
+        sequence: i + 1,
+        outcome: "exhausted" as const,
+        detail: "x".repeat(size),
+      })),
+    };
+    return inspectCapturedInvestigationCoverage(
+      c,
+      JSON.stringify({ plans: x.plans, efforts: x.efforts }),
+      x.selected,
+    );
+  };
+  let low = 1,
+    high = 4000;
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    try {
+      run(mid);
+      low = mid;
+    } catch (e) {
+      assert.equal((e as any).code, "coverage_full");
+      high = mid - 1;
+    }
+  }
+  const d = run(low),
+    size = Buffer.byteLength(JSON.stringify(d));
+  const last = x.efforts.records.at(-1)! as any;
+  last.detail += "x".repeat(512 * 1024 - size);
+  const exact = inspectCapturedInvestigationCoverage(
+    c,
+    JSON.stringify({ plans: x.plans, efforts: x.efforts }),
+    x.selected,
+  );
+  assert.equal(Buffer.byteLength(JSON.stringify(exact)), 512 * 1024);
+  assert.equal(exact.effortHistory.length, 128);
+  assert.equal(exact.questions[0]!.status, "unresolved");
+  last.detail += "x";
+  assert.throws(
+    () =>
+      inspectCapturedInvestigationCoverage(
+        c,
+        JSON.stringify({ plans: x.plans, efforts: x.efforts }),
+        x.selected,
+      ),
+    { code: "coverage_full" },
+  );
+  assert.throws(
+    () =>
+      inspectCapturedInvestigationCoverage(
+        c,
+        " ".repeat(5 * 1024 * 1024 + 1),
+        x.selected,
+      ),
+    { code: "coverage_full" },
+  );
+  assert.throws(
+    () =>
+      inspectCapturedInvestigationCoverage(c, "😀".repeat(1400000), x.selected),
+    { code: "coverage_full" },
+  );
+  assert.throws(
+    () => inspectCapturedInvestigationCoverage(c, "{broken", x.selected),
+    { code: "invalid_coverage" },
+  );
+});
+
+test("only the selected logical plan contributes table history while global sequence remains descriptive", () => {
+  const x = fixture();
+  x.plans = f.revisePlan(c, x.knowledge, x.plans, {
+    id: "unrelated",
+    expectedRevision: 0,
+    value: x.value,
+  });
+  x.efforts = e.recordEffort(c, x.plans, x.efforts, {
+    id: "unrelated",
+    expectedSequence: 1,
+    plan: x.plans.records[1]!.ref,
+    questionId: "q",
+    leadId: "log",
+    outcome: "attempted",
+    detail: "Unrelated synthetic assertion",
+    corrects: null,
+  });
+  const d = inspectCapturedInvestigationCoverage(
+    c,
+    JSON.stringify({ plans: x.plans, efforts: x.efforts }),
+    x.selected,
+  );
+  assert.equal(d.effortHistory.length, 1);
+  assert.equal(d.basis.effortSequence, 2);
+  assert.equal(d.basis.planningRecordCount, 2);
+  assert.equal(d.plan.ref.id, "plan");
+  assert.equal(d.historicalEffectiveEffortRefs.length, 0);
+});
+
+test("included effort and original plan purpose must match and empty effort capture is not coverage proof", () => {
+  const x = fixture();
+  const empty = inspectCapturedInvestigationCoverage(
+    c,
+    JSON.stringify({ plans: x.plans, efforts: e.createEffortState(c) }),
+    x.selected,
+  );
+  assert.equal(empty.questions[0]!.status, "unresolved");
+  assert.deepEqual(empty.questions[0]!.leadsWithoutRecordedEffort, [
+    "log",
+    "other",
+  ]);
+  (x.efforts.records[0] as any).purpose = "other";
+  assert.throws(
+    () =>
+      inspectCapturedInvestigationCoverage(
+        c,
+        JSON.stringify({ plans: x.plans, efforts: x.efforts }),
+        x.selected,
+      ),
+    { code: "purpose_denied" },
+  );
+});
