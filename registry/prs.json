@@ -282,7 +282,8 @@
         10,
         12,
         13,
-        14
+        14,
+        15
       ],
       "implementationStatus": "planned; partial private effort bookkeeping checkpoint; final-head CI/installed review pending; AM-05.06 verification/closure dependencies remain unmet; PR2 15 local/installed tests and source review pass; docs/efforts-verification.json; current-head CI required PR6 partial own-DB effort metadata/history and atomic audit/outbox/ack; actual stored planning selected under owning lock. Tested source checkpoint; installed/source-review/current-head CI pending. No evaluated answers/closure or current Identity/live qualification. PR6 all41 local/installed compiled public-export tests pass, four new restricted-migration groups; repository JS byte-match; initialCI40868588618/check123429526743 success41/headlogs inspected; source review no unresolved finding; docs/effort-repository-verification.json. Final-head CI required; not verification/completeness/closure acceptance. PR7 partial opt-in current stored Identity resource facade guards plan/effort methods including replay; source checkpoint local verification underway; installed/review/current-head CI pending. Host login/upstream consent/rights/production qualification remain pending. PR7 all45 local/installed compiled public-export tests pass, four new actual dual restricted DB groups; identity-repository JS byte-match; initialCI40877315552/check123459348139 success45/headlogs inspected. Source review no unresolved finding; docs/identity-repository-verification.json; final-head CI required. No host proofing/current upstream/consent or production acceptance claim. PR10 owning PostgreSQL qualification:49 local ordinary tests/typecheck/build/registry and strict integration compile pass; seven network scenarios await final-head CI/review. Tests/docs/CI only; runtime/pins/migrations unchanged. Current upstream/consent/rights/evaluated answers/closure and production remain pending. PR10 expanded source ae811a4ca55b86236d738e0ae4e7f544979adf76 CI41788854898 PostgreSQL126437240915 success7/strict compile, head/logs inspected; source review no unresolved finding; docs/postgres-verification.json. Final-head checks required. No full task or production acceptance.",
       "acceptanceCriteria": [
@@ -306,8 +307,13 @@
       },
       "coveragePostgres": {
         "docs": "docs/POSTGRES_TESTS.md",
-        "status": "Expanded source3862abb30584ef67c65a210ba182355a5cef2ca2 actual PostgreSQL17 CI43072503004/job130703793491 passes11(7prior+4new), raw logs inspected0fail0skip. Local typecheck/build/registry/unsafe-fixture test passed; final documentation-head ordinary/PG checks required. Test/docs only, no local PG/Docker/network or new runtime/Identity TCP/live claim.",
+        "status": "Accepted PR14 source2ba6a0791519aa4d8bca313dceada6aa26e63c52/merge77a1683e3f4406f37af2693780006182f73fc51d; all4headchecks/raw64ordinary+11actualPG17PASS0fail0skip. Test/docs only, no local PG/Docker or new runtime/fullworkflow qualification.",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/14"
+      },
+      "coverageHttp": {
+        "docs": "docs/COVERAGE_HTTP.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/15",
+        "status": "Six focused actual two-restrictedDB/nativeFetch groups/typecheck/build/registry pass. All six packed compiled groups/strict declarations/runtime byte match pass; full/current-head CI pending. Source review clear bounded private read profile; not complete original AM05.06/workproof/closure/SourceConsent/production acceptance."
       }
     },
     {
