@@ -319,7 +319,11 @@
       "questionDispositions": {
         "docs": "docs/QUESTION_DISPOSITIONS.md",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/16",
-        "status": "Incomplete pure captured human reviews. Eight final focused local+packed compiled public-export groups/strict declarations/runtime-byte match/typecheck/build/registry pass. Source review clear bounded metadata-only profile. Full regression/final-head CI pending; no durable/current-identity/closure qualification."
+        "status": "Accepted PR16 sourced59e06ef132e248a71a7c47a7d6f49348827d2c3/merge5ec54aed1d1f659be53d74afd32636829846072b; all4headchecks/raw78ordinary+11existingPG17PASS0fail0skip,full78local/eightpacked/declarations/runtime-byte match qualified. Pure metadata only; full task remains partial."
+      },
+      "dispositionRepository": {
+        "docs": "docs/DISPOSITION_REPOSITORY.md",
+        "status": "Incomplete stacked own-DB stableSQL adapter on purePR16. Six actual restricted-migration groups/typecheck/build/registry pass. Source checkpoint; packed/declarations/full/source-review/current-head CI pending. Host Context/fixed policy trusted; no currentIdentity/closure/live qualification."
       }
     },
     {

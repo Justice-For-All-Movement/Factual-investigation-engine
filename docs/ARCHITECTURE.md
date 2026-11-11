@@ -43,3 +43,5 @@ PR13 accepted782d414f after64ordinary+7existingPG17 CI. POSTGRES_TESTS.md record
 PR14 accepted77a1683e3f4406f37af2693780006182f73fc51d after64ordinary+11PG17 final-head CI. COVERAGE_HTTP.md describes incomplete private current-human native Fetch coverage reads; no closure/work-proof/SourceConsent or deployed hosting qualification.
 
 QUESTION_DISPOSITIONS.md describes incomplete pure captured human unanswered-question dispositions and explicit review/reopening metadata. Existing owning/HTTP/Visual coverage remains unchanged. No closure or AM05.08/Editorial gate acceptance. VisualPR28 source5c47e9173142fc994e3da2e7e9b63b8700e22ba5 merged39758bd73c74904f6a7f23975d2a8561a298ab22 after185ordinary final-head CI/full local check; no consumer pin upgrade here.
+
+DISPOSITION_REPOSITORY.md documents incomplete own-DB question review persistence stacked on purePR16; exact actual planning/effort/review storage basis under a checked project lock. Existing coverage profiles unchanged; no current Identity facade, protected route or full closure/correction-impact qualification.
