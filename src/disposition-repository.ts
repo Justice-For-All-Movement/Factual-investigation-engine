@@ -101,19 +101,31 @@ export class QuestionDispositionRepository {
   #ref(c: Context, kind: string, id: string, revision: number): Ref {
     return { tenantId: c.tenantId, projectId: c.projectId, kind, id, revision };
   }
-  #gate(signal: AbortSignal | undefined, timeoutMs: number) {
+  #gate(
+    signal: AbortSignal | undefined,
+    timeoutMs: number,
+    admit?: () => void,
+  ) {
     const started = performance.now();
     invariant(
       Number.isSafeInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 30000,
       "invalid_policy",
       "Bounded operation deadline required",
     );
-    return () =>
+    return () => {
       invariant(
         !signal?.aborted && performance.now() - started < timeoutMs,
         "disposition_unavailable",
         "Disposition operation unavailable",
       );
+      const value: unknown = admit?.();
+      if (value instanceof Promise) void value.catch(() => {});
+      invariant(
+        value === undefined,
+        "disposition_unavailable",
+        "Synchronous void admission required",
+      );
+    };
   }
   async #read(tx: UnitOfWork, c: Context, selected: Ref) {
     const planning = await tx.get<PlanningState>(PLANNING_KIND, PLANNING_KEY);
@@ -173,8 +185,9 @@ export class QuestionDispositionRepository {
     selected: Ref,
     signal?: AbortSignal,
     timeoutMs = 10000,
+    admit?: () => void,
   ) {
-    const gate = this.#gate(signal, timeoutMs),
+    const gate = this.#gate(signal, timeoutMs, admit),
       c = this.#context(context),
       choice = structuredClone(selected);
     gate();
@@ -206,8 +219,9 @@ export class QuestionDispositionRepository {
     commandId: string,
     signal?: AbortSignal,
     timeoutMs = 10000,
+    admit?: () => void,
   ): Promise<DispositionAcknowledgement> {
-    const gate = this.#gate(signal, timeoutMs),
+    const gate = this.#gate(signal, timeoutMs, admit),
       c = this.#context(context),
       q = structuredClone(command);
     gate();
