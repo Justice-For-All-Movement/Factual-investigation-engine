@@ -1,0 +1,11 @@
+{
+  "profile": "owning-coverage-postgres-v1",
+  "qualification": "Expanded source3862abb30584ef67c65a210ba182355a5cef2ca2 CI43072503004/postgres130703793491 raw11PASS0fail0skip, all4new+7prior. Local strict typecheck/build/registry/unsafe-fixture test pass; final documentation-head CI required.",
+  "limits": "No local PostgreSQL/Docker or new runtime/Identity TCP/source work/closure/production qualification.",
+  "sha256": {
+    "integration/postgres-factual.test.ts": "ef0b763aa71bc044c6f75affebf196275e699d5d9ae54b5abb89b247aae2d67e",
+    "docs/POSTGRES_TESTS.md": "0aabbe969b30278ef8546d78c11242d343d1dd379a314615fc376c3d0f04ad04",
+    "docs/ARCHITECTURE.md": "6fc14851952e054e9d149479ace9ac59e8d7497d45f97e2968ba328ed3ea9d58",
+    "registry/prs.json": "1be1c30c6d00c063a5b7dedd1ab7b06d8a10fc2884dabb3d70b70cef59bf9702"
+  }
+}

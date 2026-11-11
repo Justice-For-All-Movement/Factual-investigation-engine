@@ -643,3 +643,175 @@ for (const mode of ["correction", "read"] as const)
       }
     },
   );
+
+for (const mode of ["effort", "plan", "expiry"] as const)
+  test(
+    `coverage ${mode} waits behind a real public writer before observing its exact basis`,
+    { timeout: 20000 },
+    async (t) => {
+      const f = await fixture(t, "coverage-" + mode),
+        x = input(f.context);
+      const plan = await f.sa.append(
+        f.context,
+        0,
+        x.knowledge,
+        x.command,
+        "plan",
+      );
+      const q = effort(plan.record),
+        first = await f.sa.recordEffort(f.context, 0, q, "first");
+      const locked = gate(),
+        release = gate(),
+        writer = new FactualRepository(held(f.a, locked, release), f.policy);
+      const writing =
+        mode === "plan"
+          ? writer.append(
+              f.context,
+              1,
+              x.knowledge,
+              { ...x.command, expectedRevision: 1 },
+              "next-plan",
+            )
+          : writer.recordEffort(
+              f.context,
+              1,
+              {
+                ...q,
+                id: "correction",
+                expectedSequence: 1,
+                corrects: first.record,
+                detail: "Corrected captured effort",
+              },
+              "correction",
+            );
+      const written = writing.then(
+        (value) => ({ value }),
+        (error) => ({ error }),
+      );
+      let pending: Promise<unknown> | undefined;
+      try {
+        await Promise.race([locked.promise, writing]);
+        const selected =
+          mode === "plan" ? { ...plan.record, revision: 2 } : plan.record;
+        const started = performance.now();
+        pending = f.sb.loadCoverage(
+          f.context,
+          selected,
+          undefined,
+          mode === "expiry" ? 1000 : 10000,
+        );
+        const read = pending.then(
+          (value) => ({ value }),
+          (error) => ({ error }),
+        );
+        await observedWait(f.id);
+        if (mode === "expiry")
+          await new Promise((r) =>
+            setTimeout(r, Math.max(0, 1100 - (performance.now() - started))),
+          );
+        release.resolve();
+        assert.ok("value" in (await written));
+        const result = await read;
+        if (mode === "expiry") {
+          assert.ok("error" in result);
+          assert.equal(
+            (result.error as { code: string }).code,
+            "coverage_unavailable",
+          );
+          await scoped(f.b, f.context, async (tx) =>
+            assert.equal(
+              (await tx.audits()).filter(
+                (e) => e.type === "factual.coverage.read_checked",
+              ).length,
+              0,
+            ),
+          );
+        } else {
+          assert.ok("value" in result);
+          const snapshot = result.value as Awaited<
+            ReturnType<FactualRepository["loadCoverage"]>
+          >;
+          assert.equal(
+            snapshot.planningStorage.revision,
+            mode === "plan" ? 2 : 1,
+          );
+          assert.equal(
+            snapshot.effortStorage?.revision,
+            mode === "plan" ? 1 : 2,
+          );
+          assert.equal(snapshot.coverage.questions[0]!.status, "unresolved");
+          if (mode === "plan") {
+            assert.equal(snapshot.coverage.questions[0]!.effortRefs.length, 0);
+            assert.deepEqual(snapshot.coverage.historicalEffectiveEffortRefs, [
+              first.record,
+            ]);
+            await assert.rejects(f.sb.loadCoverage(f.context, plan.record), {
+              code: "stale_plan",
+            });
+          } else {
+            assert.equal(snapshot.coverage.effortHistory.length, 2);
+            assert.deepEqual(
+              snapshot.coverage.effortHistory[1]!.corrects,
+              first.record,
+            );
+            assert.equal(
+              snapshot.coverage.questions[0]!.effortRefs[0]!.id,
+              "correction",
+            );
+          }
+        }
+        await f.b.close();
+        const fresh = new FactualRepository(f.connect("fresh"), f.policy);
+        const current = await fresh.loadCoverage(f.context, selected);
+        assert.equal(current.planningStorage.revision, mode === "plan" ? 2 : 1);
+        assert.equal(current.effortStorage?.revision, mode === "plan" ? 1 : 2);
+      } finally {
+        release.resolve();
+        await written;
+        await pending?.catch(() => {});
+      }
+    },
+  );
+
+test(
+  "coverage lost read COMMIT remains unknown and fresh pool reads unchanged private history",
+  { timeout: 20000 },
+  async (t) => {
+    const f = await fixture(t, "coverage-lost-read"),
+      x = input(f.context);
+    const ack = await f.sa.append(f.context, 0, x.knowledge, x.command, "plan");
+    let lost = true;
+    const uncertain: Database = {
+      close: async () => {},
+      transaction: async (fn) => {
+        const result = await f.a.transaction(fn);
+        if (lost) {
+          lost = false;
+          throw Error("Fixture lost read COMMIT acknowledgement");
+        }
+        return result;
+      },
+    };
+    await assert.rejects(
+      new FactualRepository(uncertain, f.policy).loadCoverage(
+        f.context,
+        ack.record,
+      ),
+    );
+    await f.a.close();
+    const fresh = f.connect("fresh"),
+      current = new FactualRepository(fresh, f.policy);
+    const result = await current.loadCoverage(f.context, ack.record);
+    assert.deepEqual(result.planningStorage, ack.storage);
+    assert.equal(result.effortStorage, null);
+    await scoped(fresh, f.context, async (tx) => {
+      const audit = await tx.audits();
+      assert.ok(verifyAudit(audit));
+      assert.equal(
+        audit.filter((e) => e.type === "factual.coverage.read_checked").length,
+        2,
+      );
+      assert.equal((await tx.get(PLANNING_KIND, PLANNING_KEY))?.revision, 1);
+    });
+  },
+);
