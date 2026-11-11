@@ -1,0 +1,13 @@
+{
+  "profile": "coverage-read-http-v1",
+  "qualification": "Six focused local AND six packed compiled public-export actual restricted two-DB/nativeFetch groups/typecheck/build/registry/declarations/HTTP runtime bytes pass. Consumer unpacked npm pack + copied normal-prepared deps, NOT fresh install. Full/final-head CI pending; source review clear.",
+  "limits": "Synthetic proofing/PGlite NOT independent HTTP/TCP/browser/live qualification. Sequential current Identity not distributed fence; no SourceConsent/workproof/closure claim.",
+  "sha256": {
+    "src/coverage-http.ts": "bbb87a82e0ae355fe0562af3fb59bc318ce6ad9e7bdf2f97b4ac767afd44c523",
+    "tests/coverage-http.test.ts": "85f78f0135c65a4e6e251b4e8d4dd83bf7a00f72cb42428c136aa287ca4dd341",
+    "package.json": "ae258adaf4c9c7a556c7b5c5c78aae52ac17dbdff10875bb2c4844aa6133a96e",
+    "registry/prs.json": "ff5b8c0501b67f4d1b2767faa8bc0928eed4af33d346b0acbdb47ee013842377",
+    "docs/COVERAGE_HTTP.md": "b2267fb5685168086888a1f6901345d49d4a18cb9d015a5acf9d8e850ff58288",
+    "docs/ARCHITECTURE.md": "8a854894025907f6cb405408bb9f2c4dfdb72f7181149971dd7bad38d231b39a"
+  }
+}

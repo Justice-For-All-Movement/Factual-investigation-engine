@@ -1,4 +1,4 @@
-import {createCoverageReadHandler} from "../src/coverage-http.ts";
+import { createCoverageReadHandler } from "../src/coverage-http.ts";
 import {
   KnowledgeRepository,
   KNOWLEDGE_KIND,
@@ -184,21 +184,207 @@ async function fixture(t: test.TestContext, upstream = false) {
     fixed,
   };
 }
-const origin="https://coverage.invalid",base=origin+"/private/coverage";
-function post(selected:unknown,headers:Record<string,string>={}){return new Request(base+"/read",{method:"POST",headers:{origin,"sec-fetch-site":"same-origin","content-type":"application/json","x-csrf-token":"fixture-csrf-token-0000000000000000000000",...headers},body:JSON.stringify({selected})});}
-async function ready(t:test.TestContext){const f=await fixture(t),x=input();await f.membership.setResourcePolicy(c,0,f.policy,"policy");const ack=await f.repo.append(c,0,x.knowledge,x.command,"plan");let calls=0;
- const handler=createCoverageReadHandler(f.facade,f.membership,{authenticate:async()=>{calls++;return {actorId:c.actor.id,requestId:c.requestId,csrfToken:"fixture-csrf-token-0000000000000000000000"};}},{tenantId:c.tenantId,projectId:c.projectId,purpose:c.purpose,origin},()=>c.now);
- return {...f,ack,handler,calls:()=>calls};}
-test("actual coverage HTTP returns only private current owning coverage and fresh human session",async t=>{
- const f=await ready(t);const session=await f.handler(new Request(base+"/session"));assert.equal(session.status,200);assert.deepEqual(await session.json(),{actorId:c.actor.id,csrfToken:"fixture-csrf-token-0000000000000000000000"});
- const response=await f.handler(post(f.ack.record));assert.equal(response.status,200);assert.equal(response.headers.get("cache-control"),"no-store");const body=await response.json();assert.deepEqual(body.planningStorage,f.ack.storage);assert.equal(body.effortStorage,null);assert.equal(body.coverage.questions[0].status,"unresolved");assert.equal(Object.hasOwn(body,"command"),false);
+const origin = "https://coverage.invalid",
+  base = origin + "/private/coverage";
+function post(selected: unknown, headers: Record<string, string> = {}) {
+  return new Request(base + "/read", {
+    method: "POST",
+    headers: {
+      origin,
+      "sec-fetch-site": "same-origin",
+      "content-type": "application/json",
+      "x-csrf-token": "fixture-csrf-token-0000000000000000000000",
+      ...headers,
+    },
+    body: JSON.stringify({ selected }),
+  });
+}
+async function ready(t: test.TestContext) {
+  const f = await fixture(t),
+    x = input();
+  await f.membership.setResourcePolicy(c, 0, f.policy, "policy");
+  const ack = await f.repo.append(c, 0, x.knowledge, x.command, "plan");
+  let calls = 0;
+  const handler = createCoverageReadHandler(
+    f.facade,
+    f.membership,
+    {
+      authenticate: async () => {
+        calls++;
+        return {
+          actorId: c.actor.id,
+          requestId: c.requestId,
+          csrfToken: "fixture-csrf-token-0000000000000000000000",
+        };
+      },
+    },
+    {
+      tenantId: c.tenantId,
+      projectId: c.projectId,
+      purpose: c.purpose,
+      origin,
+    },
+    () => c.now,
+  );
+  return { ...f, ack, handler, calls: () => calls };
+}
+test("actual coverage HTTP returns only private current owning coverage and fresh human session", async (t) => {
+  const f = await ready(t);
+  const session = await f.handler(new Request(base + "/session"));
+  assert.equal(session.status, 200);
+  assert.deepEqual(await session.json(), {
+    actorId: c.actor.id,
+    csrfToken: "fixture-csrf-token-0000000000000000000000",
+  });
+  const response = await f.handler(post(f.ack.record));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  const body = await response.json();
+  assert.deepEqual(body.planningStorage, f.ack.storage);
+  assert.equal(body.effortStorage, null);
+  assert.equal(body.coverage.questions[0].status, "unresolved");
+  assert.equal(Object.hasOwn(body, "command"), false);
 });
-test("HTTP admission rejects foreign routes origins fields and plan scope before session proofing",async t=>{
- const f=await ready(t);
- for(const request of [post(f.ack.record,{origin:"https://other.invalid"}),post({...f.ack.record,kind:"claim"}),post({...f.ack.record,projectId:"foreign"}),new Request(base+"/write",{method:"POST"}),new Request(base+"/read",{method:"POST",headers:{origin,"content-type":"application/json"},body:'{"selected":null,"allowed":true}'})])assert.notEqual((await f.handler(request)).status,200);
- assert.equal(f.calls(),0);assert.equal((await f.handler(post(f.ack.record,{"x-csrf-token":"wrong"}))).status,403);
+test("HTTP admission rejects foreign routes origins fields and plan scope before session proofing", async (t) => {
+  const f = await ready(t);
+  for (const request of [
+    post(f.ack.record, { origin: "https://other.invalid" }),
+    post({ ...f.ack.record, kind: "claim" }),
+    post({ ...f.ack.record, projectId: "foreign" }),
+    new Request(base + "/write", { method: "POST" }),
+    new Request(base + "/read", {
+      method: "POST",
+      headers: { origin, "content-type": "application/json" },
+      body: '{"selected":null,"allowed":true}',
+    }),
+  ])
+    assert.notEqual((await f.handler(request)).status, 200);
+  assert.equal(f.calls(), 0);
+  assert.equal(
+    (await f.handler(post(f.ack.record, { "x-csrf-token": "wrong" }))).status,
+    403,
+  );
 });
-test("current resource withdrawal and lost actual read acknowledgement withhold HTTP coverage",async t=>{
- const f=await ready(t);f.hooks.lostFactual=true;const uncertain=await f.handler(post(f.ack.record));assert.equal(uncertain.status,503);assert.deepEqual(await uncertain.json(),{error:"coverage_unavailable"});assert.equal((await f.handler(post(f.ack.record))).status,200);
- await f.membership.setResourcePolicy(c,1,{...f.policy,memberIds:[]},"revoke");assert.equal((await f.handler(post(f.ack.record))).status,503);
+test("current resource withdrawal and lost actual read acknowledgement withhold HTTP coverage", async (t) => {
+  const f = await ready(t);
+  f.hooks.lostFactual = true;
+  const uncertain = await f.handler(post(f.ack.record));
+  assert.equal(uncertain.status, 503);
+  assert.deepEqual(await uncertain.json(), { error: "coverage_unavailable" });
+  assert.equal((await f.handler(post(f.ack.record))).status, 200);
+  await f.membership.setResourcePolicy(
+    c,
+    1,
+    { ...f.policy, memberIds: [] },
+    "revoke",
+  );
+  assert.equal((await f.handler(post(f.ack.record))).status, 503);
+});
+
+test("strict UTF8 byte/chunk and cancelled-body admission never reaches session proofing", async (t) => {
+  const f = await ready(t),
+    headers = {
+      origin,
+      "sec-fetch-site": "same-origin",
+      "content-type": "application/json",
+      "x-csrf-token": "fixture-csrf-token-0000000000000000000000",
+    };
+  const chunks = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (let i = 0; i < 4097; i++) controller.enqueue(new Uint8Array());
+      controller.close();
+    },
+  });
+  for (const body of [new Uint8Array([255]), "x".repeat(1025), chunks]) {
+    const req = new Request(base + "/read", {
+      method: "POST",
+      headers,
+      body,
+      duplex: "half",
+    } as RequestInit);
+    assert.notEqual((await f.handler(req)).status, 200);
+  }
+  const cancel = new AbortController();
+  cancel.abort();
+  assert.equal(
+    (
+      await f.handler(
+        new Request(base + "/read", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ selected: f.ack.record }),
+          signal: cancel.signal,
+        }),
+      )
+    ).status,
+    503,
+  );
+  assert.equal(f.calls(), 0);
+});
+
+test("policy withdrawn during a stalled body is freshly observed only after body admission", async (t) => {
+  const f = await ready(t);
+  let body!: ReadableStreamDefaultController<Uint8Array>;
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      body = controller;
+      controller.enqueue(new TextEncoder().encode('{"selected":'));
+    },
+  });
+  const request = new Request(base + "/read", {
+    method: "POST",
+    headers: {
+      origin,
+      "content-type": "application/json",
+      "x-csrf-token": "fixture-csrf-token-0000000000000000000000",
+    },
+    body: stream,
+    duplex: "half",
+  } as RequestInit);
+  const result = f.handler(request);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(f.calls(), 0);
+  await f.membership.setResourcePolicy(
+    c,
+    1,
+    { ...f.policy, memberIds: [] },
+    "withdraw-during-body",
+  );
+  body.enqueue(new TextEncoder().encode(JSON.stringify(f.ack.record) + "}"));
+  body.close();
+  assert.equal((await result).status, 503);
+  assert.equal(f.calls(), 1);
+});
+
+test("blocked late proofing cannot return a session and every proofing signal closes", async (t) => {
+  const f = await ready(t);
+  let seen: AbortSignal | undefined;
+  const handler = createCoverageReadHandler(
+    f.facade,
+    f.membership,
+    {
+      authenticate: async (_meta, signal) => {
+        seen = signal;
+        const until = performance.now() + 40;
+        while (performance.now() < until) {}
+        return {
+          actorId: c.actor.id,
+          requestId: c.requestId,
+          csrfToken: "fixture-csrf-token-0000000000000000000000",
+        };
+      },
+    },
+    {
+      tenantId: c.tenantId,
+      projectId: c.projectId,
+      purpose: c.purpose,
+      origin,
+      timeoutMs: 10,
+    },
+    () => c.now,
+  );
+  const response = await handler(new Request(base + "/session"));
+  assert.equal(response.status, 503);
+  assert.equal(seen?.aborted, true);
+  assert.deepEqual(await response.json(), { error: "coverage_unavailable" });
 });
