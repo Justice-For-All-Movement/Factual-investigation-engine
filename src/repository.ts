@@ -1,3 +1,4 @@
+import { inspectCapturedInvestigationCoverage } from "./coverage.ts";
 import { createEffortState, inspectEfforts, recordEffort } from "./efforts.ts";
 import type { EffortState, EffortInput } from "./efforts.ts";
 import { scoped } from "@accountability/evidence-sql/database";
@@ -177,6 +178,28 @@ export class FactualRepository {
         planningRevision: planning.revision,
       });
     });
+  }
+  /** One owning checked read. Caller Context remains host-trusted; Identity facade is opt-in. */
+  async loadCoverage(context: Context, selected: Ref, signal?: AbortSignal, timeoutMs = 10000) {
+    const started = performance.now(), c = this.#context(context), choice = structuredClone(selected);
+    invariant(Number.isSafeInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 30000,
+      "invalid_policy", "Bounded coverage read required");
+    const gate = () => invariant(!signal?.aborted && performance.now() - started < timeoutMs,
+      "coverage_unavailable", "Coverage observation unavailable");
+    gate();
+    return scoped(this.#db, c, async tx => {
+      gate();
+      await tx.audit("factual.coverage.read_checked", {});
+      gate();
+      const planning = await this.#load(tx, c); gate();
+      const efforts = await this.#efforts(tx, c); gate();
+      const coverage = inspectCapturedInvestigationCoverage(c, JSON.stringify({plans:planning.state, efforts:efforts.state}), choice);
+      const storage = (kind:string,id:string,revision:number):Ref => ({tenantId:c.tenantId,projectId:c.projectId,kind,id,revision});
+      const output = {planningStorage:storage(PLANNING_KIND,PLANNING_KEY,planning.revision),
+        effortStorage:efforts.revision === 0 ? null : storage(EFFORT_KIND,EFFORT_KEY,efforts.revision),coverage};
+      invariant(Buffer.byteLength(canonical(output)) <= 512*1024,"coverage_full","Complete owning coverage exceeds budget");
+      gate(); const copy = structuredClone(output); gate(); return copy;
+    }).then(output => { gate(); return output; });
   }
   async recordEffort(
     context: Context,

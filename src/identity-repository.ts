@@ -15,7 +15,8 @@ import type {
   Ref,
   Scope,
 } from "@accountability/knowledge-verification/contracts";
-import type { FactualRepository, PlanningCommand } from "./repository.ts";
+import { FactualRepository } from "./repository.ts";
+import type { PlanningCommand } from "./repository.ts";
 export const FACTUAL_RESOURCE_ID = digest({
   kind: "factual-private-history-v1",
 });
@@ -24,6 +25,7 @@ export class IdentityFactualRepository {
   readonly #knowledge: IdentityKnowledgeRepository["load"] | null;
   readonly #resolve: MembershipRegistry["resolveResource"];
   readonly #load: FactualRepository["load"];
+  readonly #coverage: FactualRepository["loadCoverage"];
   readonly #efforts: FactualRepository["loadEfforts"];
   readonly #recordEffort: FactualRepository["recordEffort"];
   readonly #append: FactualRepository["append"];
@@ -39,6 +41,7 @@ export class IdentityFactualRepository {
     this.#knowledge = knowledge ? knowledge.load.bind(knowledge) : null;
     this.#resolve = membership.resolveResource.bind(membership);
     this.#load = repository.load.bind(repository);
+    this.#coverage = FactualRepository.prototype.loadCoverage.bind(repository);
     this.#efforts = repository.loadEfforts.bind(repository);
     this.#recordEffort = repository.recordEffort.bind(repository);
     this.#append = repository.append.bind(repository);
@@ -124,6 +127,18 @@ export class IdentityFactualRepository {
   }
   async loadEfforts(context: Context, signal?: AbortSignal) {
     return this.#efforts(await this.#context(context, signal));
+  }
+  /** Sequential current Identity observations, not a cross-engine permission fence. */
+  async loadCoverage(context: Context, selected: Ref, signal?: AbortSignal) {
+    const started = performance.now(), c = structuredClone(context), choice = structuredClone(selected);
+    const gate = () => invariant(!signal?.aborted && performance.now() - started < this.#timeout,
+      "coverage_unavailable", "Current coverage unavailable");
+    try {
+      gate(); const actual = await this.#context(c, signal); gate();
+      const output = await this.#coverage(actual, choice, signal, Math.max(1,Math.ceil(this.#timeout-(performance.now()-started))));
+      gate(); await this.#context(c,signal); gate();
+      const copy = structuredClone(output); gate(); return copy;
+    } catch { invariant(false,"coverage_unavailable","Current coverage unavailable"); }
   }
   async recordEffort(
     context: Context,

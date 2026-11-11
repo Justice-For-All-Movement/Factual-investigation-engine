@@ -295,7 +295,11 @@
       "capturedCoverage": {
         "docs": "docs/CAPTURED_COVERAGE.md",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/12",
-        "status": "Six focused local and six packed compiled public-export groups/strict declarations/runtime byte match pass; full/current-head CI pending. Source review clear bounded private bookkeeping profile. No current auth/work proof/answers/completeness/closure/reopening/full task acceptance."
+        "status": "Accepted PR12 sourced7e0930/mergeddaf10d after exacthead58ordinary+7existingPG17 CI. Six local+packed groups/types/runtime qualified; full task remains partial."
+      },
+      "owningCoverage": {
+        "docs": "docs/OWNING_COVERAGE.md",
+        "status": "Incomplete own-DB checked coherent coverage read/current Identity before-after; four focused restricted migration groups/typecheck/build passed. Package/full/current-head CI/source review pending."
       }
     },
     {
