@@ -33,3 +33,5 @@ CURRENT_KNOWLEDGE.md documents the explicit accepted Knowledge pin upgrade and a
 POSTGRES_TESTS.md defines opt-in owning Factual session qualification. The source checkpoint passes49 local ordinary tests and strict integration compilation; expanded actual PostgreSQL17 CI passes seven scenarios; source review no unresolved finding; final-head CI remains required. Runtime and pins are unchanged.
 
 The opt-in reviewKnowledge method in CURRENT_KNOWLEDGE.md now composes actual owning planning reads and current-Identity Knowledge for exact dependency review; pure caller-snapshot review remains a separate host-trust path. This partial addition does not satisfy full AM-05.08 or Editorial prerequisites.
+
+CAPTURED_COVERAGE.md documents explicitly incomplete private coverage-table work. Exact-plan effort assertions and historical corrections remain separate; all questions unresolved. Full AM-05.06/shared verification/closure/reopening/correction-impact/Editorial gates remain unmet.
