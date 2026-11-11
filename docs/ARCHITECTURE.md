@@ -37,3 +37,5 @@ The opt-in reviewKnowledge method in CURRENT_KNOWLEDGE.md now composes actual ow
 CAPTURED_COVERAGE.md documents explicitly incomplete private coverage-table work. Exact-plan effort assertions and historical corrections remain separate; all questions unresolved. Full AM-05.06/shared verification/closure/reopening/correction-impact/Editorial gates remain unmet.
 
 PR12 captured coverage acceptedddaf10d after58ordinary+7existingPG17 CI. OWNING_COVERAGE.md documents incomplete coherent own-DB coverage reads with optional current Identity before/after; no source/work proof or full closure/correction impact qualification. KnowledgePR32 accepted00b743247176e939bf08b40c3a1dd844d722340e after217+13existingPG17 CI; no dependency pin upgrade is implied.
+
+PR13 accepted782d414f after64ordinary+7existingPG17 CI. POSTGRES_TESTS.md records incomplete test-only owning coverage contention/expiry/lost-read-COMMIT qualification; no runtime or full workflow qualification is implied.

@@ -301,7 +301,11 @@
       "owningCoverage": {
         "docs": "docs/OWNING_COVERAGE.md",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/13",
-        "status": "Six focused actual restricted migrated local groups/typecheck/build passed; six packed compiled groups/strict declarations/two runtime byte matches pass; full/current-head CI pending. Source review clear bounded current-Identity owning read; no full task/work proof/closure/reopening/current SourceConsent/network/live qualification."
+        "status": "Accepted PR13 source85a0b0a572021377a1dc4e303ae83104dbdfc412/merge782d414f81301787b1fc1879c9c2afd2a443da8d; all4exactheadchecks/raw64ordinary+7priorPG17PASS. Full64local/sixpacked/types/two-runtime-bytes qualified; partial original task."
+      },
+      "coveragePostgres": {
+        "docs": "docs/POSTGRES_TESTS.md",
+        "status": "Incomplete test-only four-scenario extension; local typecheck/build/registry/unsafe fixture test pass. Actual PG17/final-head CI pending; no local PG/Docker/network or new runtime claim."
       }
     },
     {

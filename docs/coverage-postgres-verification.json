@@ -1,0 +1,11 @@
+{
+  "profile": "owning-coverage-postgres-v1",
+  "qualification": "Local strict integration typecheck/build/registry and unsafe fixture test pass. Four actual new TCP scenarios await CI, seven prior retained; expected11, not claimed passed.",
+  "limits": "No local PostgreSQL/Docker or new runtime/Identity TCP/source work/closure/production qualification.",
+  "sha256": {
+    "integration/postgres-factual.test.ts": "ef0b763aa71bc044c6f75affebf196275e699d5d9ae54b5abb89b247aae2d67e",
+    "docs/POSTGRES_TESTS.md": "afff5be1cc99e1c6ba03e96d46eeeb62a04f83e06e18b6dc8b094e55cdeeb7bb",
+    "docs/ARCHITECTURE.md": "6fc14851952e054e9d149479ace9ac59e8d7497d45f97e2968ba328ed3ea9d58",
+    "registry/prs.json": "f0c68d5e55f1827932562f950689b3e06a043ba73dbc9f30872b0e5d3247743f"
+  }
+}
