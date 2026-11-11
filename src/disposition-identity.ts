@@ -143,10 +143,11 @@ export class IdentityQuestionDispositionRepository {
     command: DispositionCommand,
     commandId: string,
     signal?: AbortSignal,
+    admit?: () => void,
   ) {
     let owning = false;
     try {
-      const { c, gate, remaining } = this.#start(context, signal),
+      const { c, gate, remaining } = this.#start(context, signal, admit),
         q = structuredClone(command);
       invariant(
         Buffer.byteLength(canonical(q)) <= 128 * 1024,

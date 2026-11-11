@@ -49,3 +49,5 @@ DISPOSITION_REPOSITORY.md documents incomplete own-DB question review persistenc
 DISPOSITION_IDENTITY.md describes incomplete opt-in actual current stored Identity/resource guards over accepted PR17. No protected route, source/work proof or closure qualification.
 
 Accepted PR18 current Identity facade is qualified at926fb5e after93ordinary+11existingPG17 CI. DISPOSITION_READ_HTTP.md describes incomplete private selected disposition reads; no write/closure/source-workproof/browser/live acceptance.
+
+Accepted PR19 read interface atce2caec after100ordinary+11existingPG17 current-head CI. DISPOSITION_WRITE_HTTP.md describes incomplete protected explicit review writes with immutable exact command replay; no automatic retry or closure/workproof/live acceptance.
