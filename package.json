@@ -35,6 +35,10 @@
     "./question-dispositions": {
       "types": "./dist/question-dispositions.d.ts",
       "default": "./dist/question-dispositions.js"
+    },
+    "./disposition-repository": {
+      "types": "./dist/disposition-repository.d.ts",
+      "default": "./dist/disposition-repository.js"
     }
   },
   "engines": {
