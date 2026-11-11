@@ -432,3 +432,49 @@ test("blocked late proofing cannot return a session and every proofing signal cl
     error: "dispositions_unavailable",
   });
 });
+
+test("HTTP outer deadline reaches actual owning checked lock and rolls back late checked read audit", async (t) => {
+  const f = await ready(t);
+  let observed = false;
+  const before = await scoped(f.factual, c, (tx) => tx.audits());
+  const db: Database = {
+    transaction: (fn) =>
+      f.factual.transaction((q) =>
+        fn({
+          query: async <T>(sql: string, values?: unknown[]) => {
+            const r = await q.query<T>(sql, values);
+            if (values?.includes("factual.question_review.read_checked")) {
+              observed = true;
+              const end = performance.now() + 150;
+              while (performance.now() < end) {}
+            }
+            return r;
+          },
+        }),
+      ),
+    close: () => f.factual.close(),
+  };
+  const actual = new IdentityQuestionDispositionRepository(
+    new QuestionDispositionRepository(db, { ...f.fixed, humanIds: ["owner"] }),
+    f.membership,
+    f.fixed,
+  );
+  const handler = createDispositionReadHandler(
+    actual,
+    f.membership,
+    {
+      authenticate: async () => ({
+        actorId: c.actor.id,
+        requestId: c.requestId,
+        csrfToken: "fixture-csrf-token-0000000000000000000000",
+      }),
+    },
+    { ...f.fixed, origin, timeoutMs: 100 },
+    () => c.now,
+  );
+  const response = await handler(post(f.ack.record));
+  assert.equal(response.status, 503);
+  assert(observed);
+  const after = await scoped(f.factual, c, (tx) => tx.audits());
+  assert.equal(after.length, before.length);
+});
