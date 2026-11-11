@@ -130,15 +130,34 @@ export class IdentityFactualRepository {
   }
   /** Sequential current Identity observations, not a cross-engine permission fence. */
   async loadCoverage(context: Context, selected: Ref, signal?: AbortSignal) {
-    const started = performance.now(), c = structuredClone(context), choice = structuredClone(selected);
-    const gate = () => invariant(!signal?.aborted && performance.now() - started < this.#timeout,
-      "coverage_unavailable", "Current coverage unavailable");
+    const started = performance.now(),
+      c = structuredClone(context),
+      choice = structuredClone(selected);
+    const gate = () =>
+      invariant(
+        !signal?.aborted && performance.now() - started < this.#timeout,
+        "coverage_unavailable",
+        "Current coverage unavailable",
+      );
     try {
-      gate(); const actual = await this.#context(c, signal); gate();
-      const output = await this.#coverage(actual, choice, signal, Math.max(1,Math.ceil(this.#timeout-(performance.now()-started))));
-      gate(); await this.#context(c,signal); gate();
-      const copy = structuredClone(output); gate(); return copy;
-    } catch { invariant(false,"coverage_unavailable","Current coverage unavailable"); }
+      gate();
+      const actual = await this.#context(c, signal);
+      gate();
+      const output = await this.#coverage(
+        actual,
+        choice,
+        signal,
+        Math.max(1, Math.ceil(this.#timeout - (performance.now() - started))),
+      );
+      gate();
+      await this.#context(c, signal);
+      gate();
+      const copy = structuredClone(output);
+      gate();
+      return copy;
+    } catch {
+      invariant(false, "coverage_unavailable", "Current coverage unavailable");
+    }
   }
   async recordEffort(
     context: Context,

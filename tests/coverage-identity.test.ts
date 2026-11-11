@@ -93,8 +93,8 @@ async function fixture(t: test.TestContext, upstream = false) {
     identity: (() => void) | null;
     knowledge: (() => void | Promise<void>) | null;
     lostFactual: boolean;
-    factual: (()=>void|Promise<void>) | null;
-  } = { identity: null, knowledge: null, lostFactual: false, factual:null };
+    factual: (() => void | Promise<void>) | null;
+  } = { identity: null, knowledge: null, lostFactual: false, factual: null };
   async function database(name: string): Promise<Database> {
     const pg = new PGlite();
     await pg.exec(
@@ -183,16 +183,65 @@ async function fixture(t: test.TestContext, upstream = false) {
     fixed,
   };
 }
-test("current Identity coverage strips incoming roles and denies revoked resource policy", async t=>{
- const f=await fixture(t),x=input();await f.membership.setResourcePolicy(c,0,f.policy,"policy");
- const ack=await f.repo.append(c,0,x.knowledge,x.command,"plan");
- const d=await f.facade.loadCoverage({...c,actor:{...c.actor,roles:[]}},ack.record);assert.equal(d?.coverage.questions[0]!.status,"unresolved");
- await f.membership.setResourcePolicy(c,1,{...f.policy,memberIds:[]},"revoke");
- await assert.rejects(f.facade.loadCoverage(c,ack.record),{code:"coverage_unavailable"});
+test("current Identity coverage strips incoming roles and denies revoked resource policy", async (t) => {
+  const f = await fixture(t),
+    x = input();
+  await f.membership.setResourcePolicy(c, 0, f.policy, "policy");
+  const ack = await f.repo.append(c, 0, x.knowledge, x.command, "plan");
+  const d = await f.facade.loadCoverage(
+    { ...c, actor: { ...c.actor, roles: [] } },
+    ack.record,
+  );
+  assert.equal(d?.coverage.questions[0]!.status, "unresolved");
+  await f.membership.setResourcePolicy(
+    c,
+    1,
+    { ...f.policy, memberIds: [] },
+    "revoke",
+  );
+  await assert.rejects(f.facade.loadCoverage(c, ack.record), {
+    code: "coverage_unavailable",
+  });
 });
 
-test("fresh Identity after owning coverage withholds a result revoked during the read", async t=>{
- const f=await fixture(t),x=input();await f.membership.setResourcePolicy(c,0,f.policy,"policy");const ack=await f.repo.append(c,0,x.knowledge,x.command,"plan");
- f.hooks.factual=async()=>{f.hooks.factual=null;await f.membership.setResourcePolicy(c,1,{...f.policy,memberIds:[]},"revoke");};
- await assert.rejects(f.facade.loadCoverage(c,ack.record),{code:"coverage_unavailable"});
+test("fresh Identity after owning coverage withholds a result revoked during the read", async (t) => {
+  const f = await fixture(t),
+    x = input();
+  await f.membership.setResourcePolicy(c, 0, f.policy, "policy");
+  const ack = await f.repo.append(c, 0, x.knowledge, x.command, "plan");
+  f.hooks.factual = async () => {
+    f.hooks.factual = null;
+    await f.membership.setResourcePolicy(
+      c,
+      1,
+      { ...f.policy, memberIds: [] },
+      "revoke",
+    );
+  };
+  await assert.rejects(f.facade.loadCoverage(c, ack.record), {
+    code: "coverage_unavailable",
+  });
+});
+
+test("current coverage awaits lost owning acknowledgement and withholds cancelled committed reads", async (t) => {
+  const f = await fixture(t),
+    x = input();
+  await f.membership.setResourcePolicy(c, 0, f.policy, "policy");
+  const ack = await f.repo.append(c, 0, x.knowledge, x.command, "plan");
+  f.hooks.lostFactual = true;
+  await assert.rejects(f.facade.loadCoverage(c, ack.record), {
+    code: "coverage_unavailable",
+  });
+  const a = new AbortController();
+  f.hooks.factual = () => {
+    f.hooks.factual = null;
+    a.abort();
+  };
+  await assert.rejects(f.facade.loadCoverage(c, ack.record, a.signal), {
+    code: "coverage_unavailable",
+  });
+  assert.equal(
+    (await f.facade.loadCoverage(c, ack.record))?.planningStorage.revision,
+    1,
+  );
 });

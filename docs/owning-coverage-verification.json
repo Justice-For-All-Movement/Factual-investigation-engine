@@ -1,0 +1,14 @@
+{
+  "profile": "owning-coverage-v1",
+  "qualification": "Six focused local AND six packed compiled public-export restricted-migration groups/typecheck/build/declarations/two runtime module bytes pass. Copied normal-prepared dependencies, not fresh consumer install. Full/current-head CI pending. Source review clear.",
+  "limits": "Current Identity before/after sequential, not distributed fence; SQL awaited/late or lost ACK withheld, not rollback proof. No new independent TCP/browser/live/source proof/closure.",
+  "sha256": {
+    "src/repository.ts": "24d7bc4b7aa5387c97238dff6598c7b1950b15664ecea695546df442a1693dd4",
+    "src/identity-repository.ts": "c4e623e82cc5f5151237bced6043e607a3ef935ba8f5d68824a69a9239e7c172",
+    "tests/coverage-repository.test.ts": "e245beeda1dd97affd0d9ca30667aa486a987f1e86d66636e336b3ac711181cf",
+    "tests/coverage-identity.test.ts": "b304cdc95166112cb8cc6007f34f2034870459fa9958dd7ce27ac82500d89f19",
+    "docs/OWNING_COVERAGE.md": "b236b79890f431e3669008c45e9c999c87e03d4d28479e7e77629c4b9a1f1467",
+    "docs/ARCHITECTURE.md": "ca24adbfc51ead3a798fb67f43e9dcfc32b2d64175bef4bfc8e4fbdfb9e38cd8",
+    "registry/prs.json": "bca78efb1f35ff0213d19e40e9b577f9034676c5c7b435e073ac7441415896fd"
+  }
+}

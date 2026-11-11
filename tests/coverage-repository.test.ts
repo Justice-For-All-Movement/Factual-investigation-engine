@@ -82,7 +82,8 @@ async function fixture(t: test.TestContext) {
   await pg.exec(
     "CREATE ROLE factual_login LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION; GRANT evidence_runtime TO factual_login; SET SESSION AUTHORIZATION factual_login",
   );
-  const hooks = { lost: false, rollback: false };
+  const hooks: { lost: boolean; rollback: boolean; read: (() => void) | null } =
+    { lost: false, rollback: false, read: null };
   const db: Database = {
     transaction: (fn) =>
       pg
@@ -90,6 +91,8 @@ async function fixture(t: test.TestContext) {
           const value = await fn({
             query: async <T>(sql: string, values?: unknown[]) => {
               const result = await query.query(sql, values);
+              if (values?.includes("factual.coverage.read_checked"))
+                hooks.read?.();
               if (
                 hooks.rollback &&
                 sql.includes("INSERT INTO public.evidence_outbox")
@@ -119,15 +122,77 @@ async function fixture(t: test.TestContext) {
   return { db, pg, policy, hooks, repo: new FactualRepository(db, policy) };
 }
 
-test("owning coverage preserves exact storage editions, empty effort null, and checked audit only", async t=>{
- const f=await fixture(t),x=input(),ack=await f.repo.append(c,0,x.knowledge,x.command,"plan");
- const d=await f.repo.loadCoverage(c,ack.record);assert.deepEqual(d.planningStorage,ack.storage);assert.equal(d.effortStorage,null);assert.equal(d.coverage.questions[0]!.status,"unresolved");
- const e=await f.repo.recordEffort(c,0,{id:"attempt",expectedSequence:0,plan:ack.record,questionId:"time",leadId:"log",outcome:"unavailable",detail:"Synthetic assertion only",corrects:null},"effort");
- const after=await f.repo.loadCoverage(c,ack.record);assert.deepEqual(after.effortStorage,e.storage);assert.equal(after.coverage.effortHistory.length,1);
+test("owning coverage preserves exact storage editions, empty effort null, and checked audit only", async (t) => {
+  const f = await fixture(t),
+    x = input(),
+    ack = await f.repo.append(c, 0, x.knowledge, x.command, "plan");
+  const d = await f.repo.loadCoverage(c, ack.record);
+  assert.deepEqual(d.planningStorage, ack.storage);
+  assert.equal(d.effortStorage, null);
+  assert.equal(d.coverage.questions[0]!.status, "unresolved");
+  const e = await f.repo.recordEffort(
+    c,
+    0,
+    {
+      id: "attempt",
+      expectedSequence: 0,
+      plan: ack.record,
+      questionId: "time",
+      leadId: "log",
+      outcome: "unavailable",
+      detail: "Synthetic assertion only",
+      corrects: null,
+    },
+    "effort",
+  );
+  const after = await f.repo.loadCoverage(c, ack.record);
+  assert.deepEqual(after.effortStorage, e.storage);
+  assert.equal(after.coverage.effortHistory.length, 1);
 });
-test("owning coverage denies cancellation, stale selection and lost read COMMIT without changing stored histories", async t=>{
- const f=await fixture(t),x=input(),ack=await f.repo.append(c,0,x.knowledge,x.command,"plan");
- const abort=new AbortController();abort.abort();await assert.rejects(f.repo.loadCoverage(c,ack.record,abort.signal),{code:"coverage_unavailable"});
- f.hooks.lost=true;await assert.rejects(f.repo.loadCoverage(c,ack.record));assert.equal((await f.repo.loadCoverage(c,ack.record)).planningStorage.revision,1);
- await f.repo.append(c,1,x.knowledge,{...x.command,expectedRevision:1},"next");await assert.rejects(f.repo.loadCoverage(c,ack.record),{code:"stale_plan"});
+test("owning coverage denies cancellation, stale selection and lost read COMMIT without changing stored histories", async (t) => {
+  const f = await fixture(t),
+    x = input(),
+    ack = await f.repo.append(c, 0, x.knowledge, x.command, "plan");
+  const abort = new AbortController();
+  abort.abort();
+  await assert.rejects(f.repo.loadCoverage(c, ack.record, abort.signal), {
+    code: "coverage_unavailable",
+  });
+  f.hooks.lost = true;
+  await assert.rejects(f.repo.loadCoverage(c, ack.record));
+  assert.equal(
+    (await f.repo.loadCoverage(c, ack.record)).planningStorage.revision,
+    1,
+  );
+  await f.repo.append(
+    c,
+    1,
+    x.knowledge,
+    { ...x.command, expectedRevision: 1 },
+    "next",
+  );
+  await assert.rejects(f.repo.loadCoverage(c, ack.record), {
+    code: "stale_plan",
+  });
+});
+
+test("owning deadline rejects blocked JS after the actual checked-audit lock", async (t) => {
+  const f = await fixture(t),
+    x = input(),
+    ack = await f.repo.append(c, 0, x.knowledge, x.command, "plan");
+  let seen = false;
+  f.hooks.read = () => {
+    seen = true;
+    const until = performance.now() + 550;
+    while (performance.now() < until) {}
+  };
+  await assert.rejects(f.repo.loadCoverage(c, ack.record, undefined, 500), {
+    code: "coverage_unavailable",
+  });
+  assert.equal(seen, true);
+  f.hooks.read = null;
+  assert.equal(
+    (await f.repo.loadCoverage(c, ack.record)).planningStorage.revision,
+    1,
+  );
 });
