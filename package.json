@@ -51,6 +51,10 @@
     "./disposition-write-http": {
       "types": "./dist/disposition-write-http.d.ts",
       "default": "./dist/disposition-write-http.js"
+    },
+    "./correction-impact": {
+      "types": "./dist/correction-impact.d.ts",
+      "default": "./dist/correction-impact.js"
     }
   },
   "engines": {

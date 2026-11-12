@@ -383,7 +383,7 @@
         "AM-05-07"
       ],
       "contributingPrs": [],
-      "implementationStatus": "planned",
+      "implementationStatus": "Partial captured plan correction impact only; full original dependencies/findings/draft-output/closure/export and Editorial acceptance remain unmet. Seven focused local tests/typecheck/build/registry pass; packed/source-review/current-head CI pending.",
       "acceptanceCriteria": [
         "A corrected date finds all affected claims, findings and draft outputs while leaving unrelated work usable.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
@@ -392,7 +392,11 @@
       "externalDependencies": [],
       "externalPrerequisites": [],
       "prs": [],
-      "origin": "original"
+      "origin": "original",
+      "capturedCorrectionImpact": {
+        "docs": "docs/CAPTURED_CORRECTION_IMPACT.md",
+        "status": "Incomplete; source checkpoint, local7 pass; no current-authentication/worktruth/full correction impact claim."
+      }
     },
     {
       "id": "AM-06-01",

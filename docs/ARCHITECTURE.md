@@ -53,3 +53,5 @@ Accepted PR18 current Identity facade is qualified at926fb5e after93ordinary+11e
 Accepted PR19 read interface atce2caec after100ordinary+11existingPG17 current-head CI. DISPOSITION_WRITE_HTTP.md describes incomplete protected explicit review writes with immutable exact command replay; no automatic retry or closure/workproof/live acceptance.
 
 DISPOSITION_POSTGRES.md records incomplete test-only owning review session qualification after accepted Factual20. Original task remains partial; no current Identity-over-TCP or workproof/closure/live acceptance implied.
+
+CAPTURED_CORRECTION_IMPACT.md documents partial pure dependency impact across every captured plan edition. Findings/drafts/current permissions remain unloaded; original full AM-05.08/Editorial dependencies remain unmet. Accepted PR21 source85e3f5e93187684aa5d57d5cc71b81354abfa109 merged a2d84c63b8e96b676e028dabeb0dfa2ab3a2793f after109ordinary+16PG17 CI; earlier session-pending notes are historical.
