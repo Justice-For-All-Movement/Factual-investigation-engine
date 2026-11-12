@@ -55,3 +55,5 @@ Accepted PR19 read interface atce2caec after100ordinary+11existingPG17 current-h
 DISPOSITION_POSTGRES.md records incomplete test-only owning review session qualification after accepted Factual20. Original task remains partial; no current Identity-over-TCP or workproof/closure/live acceptance implied.
 
 CAPTURED_CORRECTION_IMPACT.md documents partial pure dependency impact across every captured plan edition. Findings/drafts/current permissions remain unloaded; original full AM-05.08/Editorial dependencies remain unmet. Accepted PR21 source85e3f5e93187684aa5d57d5cc71b81354abfa109 merged a2d84c63b8e96b676e028dabeb0dfa2ab3a2793f after109ordinary+16PG17 CI; earlier session-pending notes are historical.
+
+Accepted PR22 captured impact atb93b6f83 after117ordinary+16existingPG17. OWNING_CORRECTION_IMPACT.md documents incomplete host-trusted upstream input plus actual own planning checked-lock read; no current Identity/SourceConsent/full correction impact acceptance.

@@ -1,3 +1,4 @@
+import { inspectCapturedPlanCorrectionImpact } from "./correction-impact.ts";
 import { inspectCapturedInvestigationCoverage } from "./coverage.ts";
 import { createEffortState, inspectEfforts, recordEffort } from "./efforts.ts";
 import type { EffortState, EffortInput } from "./efforts.ts";
@@ -246,6 +247,103 @@ export class FactualRepository {
       gate();
       return output;
     });
+  }
+  /** Actual owning plans; Knowledge JSON is separately authorized HOST input, not current upstream proof. */
+  async loadCorrectionImpact(
+    context: Context,
+    knowledgeJson: string,
+    before: Ref,
+    after: Ref,
+    signal?: AbortSignal,
+    timeoutMs = 10000,
+    admit?: () => void,
+  ) {
+    const started = performance.now();
+    invariant(
+      Number.isSafeInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= 30000,
+      "invalid_policy",
+      "Bounded correction-impact read required",
+    );
+    const check = () =>
+      invariant(
+        !signal?.aborted && performance.now() - started < timeoutMs,
+        "impact_unavailable",
+        "Correction impact unavailable",
+      );
+    const gate = () => {
+      check();
+      try {
+        const result: unknown = admit?.();
+        if (result instanceof Promise) void result.catch(() => {});
+        invariant(
+          result === undefined,
+          "impact_unavailable",
+          "Synchronous void admission required",
+        );
+      } catch {
+        invariant(false, "impact_unavailable", "Correction impact unavailable");
+      }
+      check();
+    };
+    gate();
+    const c = this.#context(context),
+      prior = structuredClone(before),
+      next = structuredClone(after);
+    invariant(
+      typeof knowledgeJson === "string" &&
+        knowledgeJson.length <= 5 * 1024 * 1024 &&
+        Buffer.byteLength(knowledgeJson) <= 5 * 1024 * 1024,
+      "impact_full",
+      "Captured Knowledge exceeds budget",
+    );
+    let knowledge: KnowledgeState;
+    try {
+      knowledge = JSON.parse(knowledgeJson);
+    } catch {
+      invariant(false, "invalid_impact", "Captured Knowledge JSON required");
+    }
+    gate();
+    // The checked audit obtains the owning project lock before the only plan-history read.
+    const output = await scoped(this.#db, c, async (tx) => {
+      gate();
+      await tx.audit("factual.correction_impact.read_checked", {});
+      gate();
+      const planning = await this.#load(tx, c);
+      gate();
+      const impact = inspectCapturedPlanCorrectionImpact(
+        c,
+        JSON.stringify({ knowledge, plans: planning.state }),
+        prior,
+        next,
+      );
+      gate();
+      const result = {
+        profile: "owning-plan-correction-impact-v1" as const,
+        planningStorage:
+          planning.revision === 0
+            ? null
+            : {
+                tenantId: c.tenantId,
+                projectId: c.projectId,
+                kind: PLANNING_KIND,
+                id: PLANNING_KEY,
+                revision: planning.revision,
+              },
+        impact,
+      };
+      invariant(
+        Buffer.byteLength(canonical(result)) <= 512 * 1024,
+        "impact_full",
+        "Complete owning impact exceeds budget",
+      );
+      gate();
+      const copy = structuredClone(result);
+      gate();
+      return copy;
+    });
+    // Begun SQL is awaited. Lost/late acknowledgement is unknown, never rollback proof.
+    gate();
+    return output;
   }
   async recordEffort(
     context: Context,
