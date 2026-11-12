@@ -1,0 +1,16 @@
+{
+  "profile": "own-planning-host-trusted-Knowledge-only",
+  "focusedLocal": 8,
+  "packedPublicExport": 8,
+  "strictDeclarations": "passed",
+  "runtimeBytes": "repository.js matched",
+  "consumer": "copied/hard-linked prepared dependencies, not fresh install",
+  "sourceReview": "clear; checked owning lock before actual history; no outbox/command writes; sanitized sync-void admission before/after clock gates; await begun SQL, no rollback claim after unknown read",
+  "currentHeadCI": "pending",
+  "sha256": {
+    "src/repository.ts": "4eb415c6f8411bdf0cb63b8865d08a941f4443e6931c69a6c3022d8d4082e486",
+    "tests/correction-impact-repository.test.ts": "bc0b7d7b78128375682f07458259cf7fd16e9a29577e73befc9d60ce15711bbd",
+    "docs/OWNING_CORRECTION_IMPACT.md": "1bd49daa1256e48cb0bc73dc8770e60ffab4c3c89c1e8e8aadb2043216289d00",
+    "docs/ARCHITECTURE.md": "719af8a915b4e630ab05a45f734569b37eeaa8f2191bc82d80b3dcb5f6d735ff"
+  }
+}
