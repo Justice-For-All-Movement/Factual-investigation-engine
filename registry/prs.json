@@ -385,7 +385,8 @@
       "contributingPrs": [
         22,
         23,
-        24
+        24,
+        25
       ],
       "implementationStatus": "Partial captured plan correction impact only; full original dependencies/findings/draft-output/closure/export and Editorial acceptance remain unmet. Eight focused local and packed public-export groups/types/runtime byte-match pass; final-head CI pending.",
       "acceptanceCriteria": [
@@ -410,7 +411,12 @@
       "currentCorrectionImpact": {
         "docs": "docs/CURRENT_CORRECTION_IMPACT.md",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/24",
-        "status": "Incomplete;10final focusedLOCAL+10PACKED actual three restricted-migration DB groups/types/runtime bytes/typecheck/build/registry pass; source review clear; final-head CI pending. No SourceConsent/truth/findingsdrafts/full correction-impact/closure or distributed fence claim."
+        "status": "Accepted PR24 source0bcf455ff130c19195e44a9804fb0a2ca4e2647f mergef6b71a6e6de56e896c7c84696184c3560f31fac3 after135ordinary+16existingPG17 all4headchecks/full135local/10local-packed/types/runtime qualified; full task partial, sequential not distributed fence."
+      },
+      "correctionImpactPostgres": {
+        "docs": "docs/CORRECTION_IMPACT_POSTGRES.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/25",
+        "status": "Incomplete test-only3new+16prior scenarios. Strict compile/build/registry/unsafe-fixture local pass. Initial PG18/19: test reference JSON key-order assertion failed; structural equality corrected, final-head actual PG qualification pending. Runtime unchanged/no localPGDocker/currentIdentitySourceConsentTCP/fullworkflow claim."
       }
     },
     {

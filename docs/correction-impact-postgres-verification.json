@@ -1,0 +1,12 @@
+{
+  "profile": "test-only-owning-impact-network",
+  "local": "strict compile/build/registry and unsafe-fixture1 passed; actualPG not run locally",
+  "initialPG": "18/19 on90652073; key-order-sensitive reference assertion corrected; raw131204094273 inspected",
+  "finalPG": "pending actual current-head CI",
+  "sourceReview": "clear; existing canonical restricted empty-loopback fixture/distinctPIDs/required independent observed Lock and blockingPIDs/real public writer beforeCOMMIT/finally release-await/freshpool actual lostreadCOMMIT audit history; no runtime or currentIdentitySourceConsentTCP qualification",
+  "sha256": {
+    "integration/postgres-factual.test.ts": "5c252029ba505bd34b7eba0990b32db7332e1f599ba4e7045e233d30a4474c03",
+    "docs/CORRECTION_IMPACT_POSTGRES.md": "74b3d5f9469a14d496cb16490324625545c36d0b0859ed01661d10025d947f5a",
+    "docs/POSTGRES_TESTS.md": "f03f335f363073c50bd8f76719b2f52f4e1051a8aa68d254fbbc8f0ddb22f2d4"
+  }
+}
