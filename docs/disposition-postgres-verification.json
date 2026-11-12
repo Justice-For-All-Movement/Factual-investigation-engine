@@ -1,0 +1,14 @@
+{
+  "profile": "owning-disposition-postgres-verification-v1",
+  "limits": [
+    "Strict integration compile and unsafe-fixture child test pass locally; no localPostgresDocker claim.",
+    "Five new and eleven prior cases; actual final-head CI required.",
+    "Test-only trusted host Context; no currentIdentityTCP/source/worktruth/closure/live qualification."
+  ],
+  "sha256": {
+    "integration/postgres-factual.test.ts": "02d7f1a1ec66e8ea722ce23208f394616918914cd9cde7e0d2e59d673532d1d5",
+    "registry/prs.json": "68c8d053dce45f0a4fb25cdf2b9a766af3f340cd7288e37e1e7ffb7aeb416e03",
+    "docs/ARCHITECTURE.md": "be0347a2f6d37c36fae085e949eccae03526d8126c437648285302fbbdcd1fed",
+    "docs/DISPOSITION_POSTGRES.md": "9309338fbd621519ab930854358d92ed7c8dcc4d8d3df0eba24f12cd8c0ae7b5"
+  }
+}

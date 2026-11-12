@@ -815,3 +815,122 @@ test(
     });
   },
 );
+
+// Owning disposition semantics only. Host Context is trusted; no current Identity-over-TCP claim.
+import { QuestionDispositionRepository, DISPOSITION_KIND, DISPOSITION_KEY } from "../src/disposition-repository.ts";
+import type { DispositionCommand } from "../src/disposition-repository.ts";
+function reviewCommand(plan: Awaited<ReturnType<FactualRepository["append"]>>): DispositionCommand {
+  return {
+    planningStorage: plan.storage, effortStorage: null,
+    review: {
+      id: "review", expectedSequence: 0, supersedes: null, selected: plan.record,
+      questions: [{ questionId: "time", status: "assigned", reason: "Seek an authorized fictional record",
+        assigneeId: "host-label", reviewAt: "2026-02-01T00:00:00.000Z" }],
+      reopeningTriggers: ["New authorized fixture"],
+    },
+  };
+}
+test("disposition independent contenders wait on public writer; lost winning COMMIT replays one immutable review", {timeout:20000}, async t => {
+  const f = await fixture(t,"review-contenders"), x = input(f.context);
+  const plan = await f.sa.append(f.context,0,x.knowledge,x.command,"plan"), command = reviewCommand(plan);
+  const locked = gate(), release = gate();
+  let lost = true;
+  const uncertain: Database = {close:async()=>{},transaction:async fn=>{
+    const value = await held(f.a,locked,release).transaction(fn);
+    if(lost){lost=false;throw Error("Fixture lost review COMMIT acknowledgement");}
+    return value;
+  }};
+  const writing = new QuestionDispositionRepository(uncertain,f.policy).record(f.context,0,command,"winner");
+  const written = writing.then(value=>({value}),error=>({error}));
+  let pending: Promise<unknown> | undefined;
+  try {
+    await Promise.race([locked.promise,writing]);
+    pending = new QuestionDispositionRepository(f.b,f.policy).record(f.context,0,{...command,review:{...command.review,id:"contender"}},"contender");
+    const competing = pending.then(value=>({value}),error=>({error}));
+    await observedWait(f.id); release.resolve();
+    assert.ok("error" in await written);
+    const other = await competing; assert.ok("error" in other); assert.equal((other.error as {code:string}).code,"revision_conflict");
+    await f.a.close(); await f.b.close();
+    const fresh = f.connect("fresh"), store = new QuestionDispositionRepository(fresh,f.policy);
+    const ack = await store.record(f.context,0,command,"winner");
+    assert.equal(ack.storage.revision,1); assert.equal(ack.record.id,"review");
+    const result = await store.load(f.context,plan.record);
+    assert.deepEqual(result.storage,ack.storage); assert.equal(result.table.history.length,1);
+    assert.deepEqual(result.planningStorage,plan.storage); assert.equal(result.effortStorage,null);
+    await effects(fresh,f.context,"factual.question_review.recorded","factual.question_review.recorded",1);
+  } finally {release.resolve();await written;await pending?.catch(()=>{});}
+});
+
+test("disposition new write waits behind actual effort append then denies stale aggregate basis while historical ACK stays historical", {timeout:20000}, async t=>{
+  const f=await fixture(t,"review-effort"),x=input(f.context);
+  const plan=await f.sa.append(f.context,0,x.knowledge,x.command,"plan"),command=reviewCommand(plan);
+  const store=new QuestionDispositionRepository(f.a,f.policy), first=await store.record(f.context,0,command,"first");
+  const locked=gate(),release=gate();
+  const writing=new FactualRepository(held(f.a,locked,release),f.policy).recordEffort(f.context,0,effort(plan.record),"effort");
+  const written=writing.then(value=>({value}),error=>({error}));let pending:Promise<unknown>|undefined;
+  try {
+    await Promise.race([locked.promise,writing]);
+    pending=new QuestionDispositionRepository(f.b,f.policy).record(f.context,1,{...command,review:{...command.review,id:"second",expectedSequence:1,supersedes:first.record}},"second");
+    const competing=pending.then(value=>({value}),error=>({error}));
+    await observedWait(f.id);release.resolve();assert.ok("value" in await written);
+    const result=await competing;assert.ok("error" in result);assert.equal((result.error as {code:string}).code,"revision_conflict");
+    await f.b.close();const fresh=f.connect("fresh"),current=new QuestionDispositionRepository(fresh,f.policy);
+    assert.deepEqual(await current.record(f.context,0,command,"first"),first);
+    const table=await current.load(f.context,plan.record);assert.equal(table.storage?.revision,1);assert.equal(table.effortStorage?.revision,1);
+    assert.equal(table.table.reviewRequired,"basis-changed");assert.equal(table.table.questions[0]!.disposition.status,"unresolved");
+    assert.equal(table.table.history[0]!.questions[0]!.status,"assigned");
+    await effects(fresh,f.context,"factual.question_review.recorded","factual.question_review.recorded",1);
+  } finally {release.resolve();await written;await pending?.catch(()=>{});}
+});
+
+for (const mode of ["plan", "expiry"] as const)
+  test(`disposition ${mode} read waits behind real public writer and preserves immutable review history`, {timeout:20000}, async t=>{
+    const f=await fixture(t,"review-"+mode),x=input(f.context);
+    const plan=await f.sa.append(f.context,0,x.knowledge,x.command,"plan"),command=reviewCommand(plan);
+    const first=await new QuestionDispositionRepository(f.a,f.policy).record(f.context,0,command,"review");
+    const locked=gate(),release=gate(),writer=new FactualRepository(held(f.a,locked,release),f.policy);
+    const writing=mode==="plan"
+      ? writer.append(f.context,1,x.knowledge,{...x.command,expectedRevision:1},"next-plan")
+      : writer.recordEffort(f.context,0,effort(plan.record),"effort");
+    const written=writing.then(value=>({value}),error=>({error}));let pending:Promise<unknown>|undefined;
+    const selected=mode==="plan"?{...plan.record,revision:2}:plan.record;
+    try {
+      await Promise.race([locked.promise,writing]);const started=performance.now();
+      pending=new QuestionDispositionRepository(f.b,f.policy).load(f.context,selected,undefined,mode==="expiry"?1000:10000);
+      const reading=pending.then(value=>({value}),error=>({error}));await observedWait(f.id);
+      if(mode==="expiry")await new Promise(r=>setTimeout(r,Math.max(0,1100-(performance.now()-started))));
+      release.resolve();assert.ok("value" in await written);const result=await reading;
+      if(mode==="expiry") {
+        assert.ok("error" in result);assert.equal((result.error as {code:string}).code,"disposition_unavailable");
+        await scoped(f.b,f.context,async tx=>assert.equal((await tx.audits()).filter(e=>e.type==="factual.question_review.read_checked").length,0));
+      } else {
+        assert.ok("value" in result);const value=result.value as Awaited<ReturnType<QuestionDispositionRepository["load"]>>;
+        assert.equal(value.planningStorage.revision,2);assert.equal(value.effortStorage,null);assert.equal(value.table.reviewRequired,"basis-changed");
+        assert.equal(value.table.history[0]!.basis.plan.revision,1);assert.equal(value.table.questions[0]!.disposition.status,"unresolved");
+        await assert.rejects(new QuestionDispositionRepository(f.b,f.policy).record(f.context,0,command,"review"),{code:"stale_plan"});
+      }
+      await f.b.close();const fresh=f.connect("fresh"),current=await new QuestionDispositionRepository(fresh,f.policy).load(f.context,selected);
+      assert.deepEqual(current.storage,first.storage);assert.equal(current.table.history.length,1);
+      assert.equal(current.table.history[0]!.questions[0]!.status,"assigned");assert.equal(current.table.questions[0]!.disposition.status,"unresolved");
+      assert.equal(current.planningStorage.revision,mode==="plan"?2:1);assert.equal(current.effortStorage?.revision??0,mode==="plan"?0:1);
+    } finally {release.resolve();await written;await pending?.catch(()=>{});}
+  });
+
+test("disposition lost checked-read COMMIT is withheld; fresh pool retains both audits and unchanged three-aggregate history", {timeout:20000}, async t=>{
+  const f=await fixture(t,"review-lost-read"),x=input(f.context);
+  const plan=await f.sa.append(f.context,0,x.knowledge,x.command,"plan"),command=reviewCommand(plan);
+  const ack=await new QuestionDispositionRepository(f.a,f.policy).record(f.context,0,command,"review");let lost=true;
+  const uncertain:Database={close:async()=>{},transaction:async fn=>{
+    const result=await f.a.transaction(fn);if(lost){lost=false;throw Error("Fixture lost review read COMMIT acknowledgement");}return result;
+  }};
+  await assert.rejects(new QuestionDispositionRepository(uncertain,f.policy).load(f.context,plan.record));
+  await f.a.close();const fresh=f.connect("fresh"),value=await new QuestionDispositionRepository(fresh,f.policy).load(f.context,plan.record);
+  assert.deepEqual(value.storage,ack.storage);assert.deepEqual(value.planningStorage,plan.storage);assert.equal(value.effortStorage,null);assert.equal(value.table.history.length,1);
+  await scoped(fresh,f.context,async tx=>{
+    const audits=await tx.audits();assert.ok(verifyAudit(audits));
+    assert.equal(audits.filter(e=>e.type==="factual.question_review.read_checked").length,2);
+    assert.equal((await tx.get(DISPOSITION_KIND,DISPOSITION_KEY))?.revision,1);
+    assert.equal((await tx.get(PLANNING_KIND,PLANNING_KEY))?.revision,1);
+  });
+  await effects(fresh,f.context,"factual.question_review.recorded","factual.question_review.recorded",1);
+});

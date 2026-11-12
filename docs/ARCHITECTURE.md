@@ -51,3 +51,5 @@ DISPOSITION_IDENTITY.md describes incomplete opt-in actual current stored Identi
 Accepted PR18 current Identity facade is qualified at926fb5e after93ordinary+11existingPG17 CI. DISPOSITION_READ_HTTP.md describes incomplete private selected disposition reads; no write/closure/source-workproof/browser/live acceptance.
 
 Accepted PR19 read interface atce2caec after100ordinary+11existingPG17 current-head CI. DISPOSITION_WRITE_HTTP.md describes incomplete protected explicit review writes with immutable exact command replay; no automatic retry or closure/workproof/live acceptance.
+
+DISPOSITION_POSTGRES.md records incomplete test-only owning review session qualification after accepted Factual20. Original task remains partial; no current Identity-over-TCP or workproof/closure/live acceptance implied.
