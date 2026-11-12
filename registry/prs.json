@@ -383,7 +383,8 @@
         "AM-05-07"
       ],
       "contributingPrs": [
-        22
+        22,
+        23
       ],
       "implementationStatus": "Partial captured plan correction impact only; full original dependencies/findings/draft-output/closure/export and Editorial acceptance remain unmet. Eight focused local and packed public-export groups/types/runtime byte-match pass; final-head CI pending.",
       "acceptanceCriteria": [
@@ -402,7 +403,8 @@
       },
       "owningCorrectionImpact": {
         "docs": "docs/OWNING_CORRECTION_IMPACT.md",
-        "status": "Incomplete; eight focused local actual restricted-migration groups/typecheck/build/registry pass. Packed/source-review/current-head CI pending; host-trusted Knowledge only."
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/23",
+        "status": "Incomplete;8final focused local+8packed actual restricted-migration groups/typecheck/build/registry/types/runtime bytes pass; source review clear; final-head CI pending. Host-trusted Knowledge only; no current Identity/SourceConsent/full correction-impact claim."
       }
     },
     {

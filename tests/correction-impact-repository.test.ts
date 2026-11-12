@@ -186,6 +186,7 @@ test("lost actual read COMMIT withholds copy; explicit fresh read retains same p
   const f = await fixture(t),
     x = change();
   await f.repo.append(c, 0, x.originalKnowledge, x.command, "plan");
+  const beforeAudit=await scoped(f.db,c,tx=>tx.audits());
   f.hooks.lost = true;
   await assert.rejects(
     f.repo.loadCorrectionImpact(
@@ -201,6 +202,10 @@ test("lost actual read COMMIT withholds copy; explicit fresh read retains same p
     x.before,
     x.after,
   );
+  const afterAudit=await scoped(f.db,c,tx=>tx.audits());
+  assert.equal(afterAudit.length,beforeAudit.length+2);
+  assert(afterAudit.slice(-2).every(a=>a.type==="factual.correction_impact.read_checked"));
+  assert.equal(verifyAudit(afterAudit),true);
   assert.equal(result.planningStorage!.revision, 1);
   assert.equal(result.impact.plans.length, 1);
 });
