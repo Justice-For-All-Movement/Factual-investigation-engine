@@ -411,6 +411,10 @@
         "docs": "docs/CURRENT_CORRECTION_IMPACT.md",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/24",
         "status": "Incomplete;10final focusedLOCAL+10PACKED actual three restricted-migration DB groups/types/runtime bytes/typecheck/build/registry pass; source review clear; final-head CI pending. No SourceConsent/truth/findingsdrafts/full correction-impact/closure or distributed fence claim."
+      },
+      "correctionImpactPostgres": {
+        "docs": "docs/CORRECTION_IMPACT_POSTGRES.md",
+        "status": "Incomplete test-only3new+16prior actual PostgreSQL scenarios; strict compile/build/registry/unsafe-fixture local pass, actual final-head PostgreSQL CI pending. No localPGDocker/currentIdentitySourceConsentTCP/fullworkflow claim."
       }
     },
     {

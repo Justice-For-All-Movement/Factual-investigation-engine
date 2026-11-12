@@ -934,3 +934,212 @@ test("disposition lost checked-read COMMIT is withheld; fresh pool retains both 
   });
   await effects(fresh,f.context,"factual.question_review.recorded","factual.question_review.recorded",1);
 });
+
+// Own Factual storage only; Knowledge capture/Context are HOST trusted, not current cross-engine authority.
+for (const mode of ["plan", "expiry"] as const) {
+  test(
+    `correction impact ${mode} waits behind actual public plan writer before observing complete history`,
+    { timeout: 20000 },
+    async (t) => {
+      const f = await fixture(t, "impact-" + mode),
+        x = input(f.context);
+      const plan = await f.sa.append(
+        f.context,
+        0,
+        x.knowledge,
+        x.command,
+        "plan",
+      );
+      const changed = k.reviseKnowledge(f.context, x.knowledge, {
+        id: "claim",
+        expectedRevision: 1,
+        value: x.knowledge.records[0]!.value,
+      });
+      const prior = x.knowledge.records[0]!.ref,
+        next = changed.records.at(-1)!.ref;
+      const locked = gate(),
+        release = gate();
+      const writer = new FactualRepository(
+        held(f.a, locked, release),
+        f.policy,
+      );
+      const writing = writer.append(
+        f.context,
+        1,
+        x.knowledge,
+        { ...x.command, expectedRevision: 1 },
+        "plan2",
+      );
+      const written = writing.then(
+        (value) => ({ value }),
+        (error) => ({ error }),
+      );
+      let pending:
+        | Promise<
+            Awaited<ReturnType<FactualRepository["loadCorrectionImpact"]>>
+          >
+        | undefined;
+      let settled: Promise<unknown> | undefined;
+      try {
+        await Promise.race([locked.promise, writing]);
+        const started = performance.now();
+        pending = f.sb.loadCorrectionImpact(
+          f.context,
+          JSON.stringify(changed),
+          prior,
+          next,
+          undefined,
+          mode === "expiry" ? 1000 : 10000,
+        );
+        const read = pending.then(
+          (value) => ({ value }),
+          (error) => ({ error }),
+        );
+        settled = read;
+        await observedWait(f.id);
+        if (mode === "expiry")
+          await new Promise((r) =>
+            setTimeout(r, Math.max(0, 1100 - (performance.now() - started))),
+          );
+        release.resolve();
+        const committed = await written;
+        assert.ok("value" in committed);
+        const result = await read;
+        if (mode === "expiry") {
+          assert.ok("error" in result);
+          assert.equal(
+            (result.error as { code: string }).code,
+            "impact_unavailable",
+          );
+          await scoped(f.b, f.context, async (tx) =>
+            assert.equal(
+              (await tx.audits()).filter(
+                (a) => a.type === "factual.correction_impact.read_checked",
+              ).length,
+              0,
+            ),
+          );
+        } else {
+          assert.ok("value" in result);
+          assert.deepEqual(
+            result.value.planningStorage,
+            committed.value.storage,
+          );
+          assert.equal(result.value.impact.plans.length, 2);
+          assert.deepEqual(
+            result.value.impact.plans.map((p) => p.plan),
+            [plan.record, committed.value.record],
+          );
+          assert(
+            result.value.impact.plans.every(
+              (p) => p.status === "review-required",
+            ),
+          );
+          assert(
+            result.value.impact.plans.every(
+              (p) => JSON.stringify(p.affectedRefs) === JSON.stringify([prior]),
+            ),
+          );
+          assert(
+            result.value.impact.plans.every(
+              (p) =>
+                JSON.stringify(p.latestPlan) ===
+                JSON.stringify(committed.value.record),
+            ),
+          );
+        }
+        await f.b.close();
+        const fresh = f.connect("fresh");
+        const snapshot = await new FactualRepository(
+          fresh,
+          f.policy,
+        ).loadCorrectionImpact(f.context, JSON.stringify(changed), prior, next);
+        assert.deepEqual(snapshot.planningStorage, committed.value.storage);
+        assert.equal(snapshot.impact.plans.length, 2);
+        await scoped(fresh, f.context, async (tx) =>
+          assert.ok(verifyAudit(await tx.audits())),
+        );
+        await effects(
+          fresh,
+          f.context,
+          "factual.planning.appended",
+          "factual.planning.revised",
+          2,
+        );
+      } finally {
+        release.resolve();
+        await written;
+        await settled;
+      }
+    },
+  );
+}
+
+test(
+  "correction impact lost actual checked-read COMMIT retains audit and unchanged history in fresh pool",
+  { timeout: 20000 },
+  async (t) => {
+    const f = await fixture(t, "impact-lost-read"),
+      x = input(f.context);
+    const plan = await f.sa.append(
+      f.context,
+      0,
+      x.knowledge,
+      x.command,
+      "plan",
+    );
+    const changed = k.reviseKnowledge(f.context, x.knowledge, {
+      id: "claim",
+      expectedRevision: 1,
+      value: x.knowledge.records[0]!.value,
+    });
+    const prior = x.knowledge.records[0]!.ref,
+      next = changed.records.at(-1)!.ref;
+    const before = await scoped(f.a, f.context, (tx) =>
+      tx.get(PLANNING_KIND, PLANNING_KEY),
+    );
+    let lost = true;
+    const uncertain: Database = {
+      close: async () => {},
+      transaction: async (fn) => {
+        const result = await f.a.transaction(fn);
+        if (lost) {
+          lost = false;
+          throw Error("Lost actual read COMMIT acknowledgement");
+        }
+        return result;
+      },
+    };
+    await assert.rejects(
+      new FactualRepository(uncertain, f.policy).loadCorrectionImpact(
+        f.context,
+        JSON.stringify(changed),
+        prior,
+        next,
+      ),
+    );
+    await f.a.close();
+    const fresh = f.connect("fresh");
+    const result = await new FactualRepository(
+      fresh,
+      f.policy,
+    ).loadCorrectionImpact(f.context, JSON.stringify(changed), prior, next);
+    assert.deepEqual(result.planningStorage, plan.storage);
+    assert.equal(result.impact.plans[0]!.status, "review-required");
+    await scoped(fresh, f.context, async (tx) => {
+      assert.deepEqual(await tx.get(PLANNING_KIND, PLANNING_KEY), before);
+      const audits = await tx.audits();
+      assert.ok(verifyAudit(audits));
+      assert.equal(
+        audits.filter(
+          (a) => a.type === "factual.correction_impact.read_checked",
+        ).length,
+        2,
+      );
+      assert.equal(
+        audits.filter((a) => a.type === "factual.planning.appended").length,
+        1,
+      );
+    });
+  },
+);
