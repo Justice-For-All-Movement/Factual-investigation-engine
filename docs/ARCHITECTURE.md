@@ -59,3 +59,5 @@ CAPTURED_CORRECTION_IMPACT.md documents partial pure dependency impact across ev
 Accepted PR22 captured impact atb93b6f83 after117ordinary+16existingPG17. OWNING_CORRECTION_IMPACT.md documents incomplete host-trusted upstream input plus actual own planning checked-lock read; no current Identity/SourceConsent/full correction impact acceptance.
 
 Accepted PR23 owning impact at31202089 after125ordinary+16existingPG17. CURRENT_CORRECTION_IMPACT.md describes incomplete actual Identity/Knowledge/Factual sequential read composition; source rights/findingsdrafts/closure/Editorial remain pending.
+
+Accepted PR25 owning PostgreSQL impact ataf03f52f after135ordinary+19PG17. CORRECTION_IMPACT_HTTP.md documents incomplete private actual-current-reader/session native Fetch admission; SourceConsent/findingsdrafts/full closure/Editorial/browserATlive remain pending.

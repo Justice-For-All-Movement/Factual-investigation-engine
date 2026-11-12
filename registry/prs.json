@@ -416,7 +416,11 @@
       "correctionImpactPostgres": {
         "docs": "docs/CORRECTION_IMPACT_POSTGRES.md",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/25",
-        "status": "Incomplete test-only3new+16prior scenarios. Strict compile/build/registry/unsafe-fixture local pass. Initial PG18/19: test reference JSON key-order assertion failed; structural equality corrected, final-head actual PG qualification pending. Runtime unchanged/no localPGDocker/currentIdentitySourceConsentTCP/fullworkflow claim."
+        "status": "Accepted PR25 source0f0c3a0fc0dabdf131bf0418eb9225cefec784c1 mergeaf03f52fef9789a260fdb138437ffcc0e12bcdff after135ordinary+19PG17 all4headchecks. Test-only; no localPGDocker/currentIdentitySourceConsentTCP/fullworkflow claim."
+      },
+      "correctionImpactHttp": {
+        "docs": "docs/CORRECTION_IMPACT_HTTP.md",
+        "status": "Incomplete;7focused local actual three restricted-migration/nativeFetch groups/typecheck/build/registry pass. Packed/source-review/final-head CI pending; no full correction impact/SourceConsent/closure/browserATlive claim."
       }
     },
     {
