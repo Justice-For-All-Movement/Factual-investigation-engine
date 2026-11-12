@@ -32,9 +32,11 @@ It does not satisfy the full original AM-05.08 dependency gate, report/export,
 closure or Editorial prerequisites. No false audit actors, times or creation
 editions are invented. No sends, publication, payment or PAM behavior is added.
 
-Seven focused neutral tests exercise an actual captured date correction through a
+Eight focused neutral tests exercise an actual captured date correction through a
 claim/relationship/event graph, unrelated plans, historical editions, missing
 roots, stale/wrong-scope/role/purpose/extra/zero references, malformed/oversize JSON
 and aggregate work-budget rejection. Local typecheck/build/registry and packaged
 export qualification are recorded separately from current-head CI. No real TCP,
 browser/AT, host proofing, current Source/Consent, or deployed acceptance claim.
+
+All eight focused groups also pass packed compiled public exports with strict declarations and runtime byte equality. Consumer uses copied/hard-linked prepared dependencies, not a fresh dependency install. Source review clear for captured-only profile; full final-head CI remains required. PR: https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/22.
