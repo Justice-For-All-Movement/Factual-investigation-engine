@@ -30,3 +30,5 @@ Local strict compile/build/registry/unsafe-fixture checks are separate from actu
 PostgreSQL CI qualification. No local PostgreSQL/Docker, TLS/failover/driver/crash,
 browser/AT/live/worktruth/closure claim. Actual final-head raw CI logs are required
 before merge. Original full correction-impact/Editorial dependencies remain unmet.
+
+Initial source90652073 actual PostgreSQL job131204094273 passed18/19: the normal impact fixture compared serialized reference key order. Structural deep equality now checks every affected reference and latest plan reference without relying on JSONB object order. Local actual PGlite JSONB reproduction confirms equivalent entries can serialize differently. This is a test-fixture correction, not an accepted domain defect. Final-head actual19PG qualification remains pending. PR25 is retargeted MAIN after accepted24 mergef6b71a6e6de56e896c7c84696184c3560f31fac3; original stacked-base notes are historical.

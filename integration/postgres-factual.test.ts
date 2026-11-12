@@ -1035,18 +1035,10 @@ for (const mode of ["plan", "expiry"] as const) {
               (p) => p.status === "review-required",
             ),
           );
-          assert(
-            result.value.impact.plans.every(
-              (p) => JSON.stringify(p.affectedRefs) === JSON.stringify([prior]),
-            ),
-          );
-          assert(
-            result.value.impact.plans.every(
-              (p) =>
-                JSON.stringify(p.latestPlan) ===
-                JSON.stringify(committed.value.record),
-            ),
-          );
+          for (const row of result.value.impact.plans) {
+            assert.deepEqual(row.affectedRefs, [prior]);
+            assert.deepEqual(row.latestPlan, committed.value.record);
+          }
         }
         await f.b.close();
         const fresh = f.connect("fresh");
@@ -1126,6 +1118,7 @@ test(
     ).loadCorrectionImpact(f.context, JSON.stringify(changed), prior, next);
     assert.deepEqual(result.planningStorage, plan.storage);
     assert.equal(result.impact.plans[0]!.status, "review-required");
+    await effects(fresh, f.context, "factual.planning.appended", "factual.planning.revised", 1);
     await scoped(fresh, f.context, async (tx) => {
       assert.deepEqual(await tx.get(PLANNING_KIND, PLANNING_KEY), before);
       const audits = await tx.audits();
