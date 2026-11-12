@@ -59,6 +59,10 @@
     "./correction-impact-current": {
       "types": "./dist/correction-impact-current.d.ts",
       "default": "./dist/correction-impact-current.js"
+    },
+    "./correction-impact-http": {
+      "types": "./dist/correction-impact-http.d.ts",
+      "default": "./dist/correction-impact-http.js"
     }
   },
   "engines": {
