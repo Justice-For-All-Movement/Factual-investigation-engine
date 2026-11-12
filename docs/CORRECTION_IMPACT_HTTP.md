@@ -41,3 +41,5 @@ HTTP admission, malformed UTF8/size/chunks/declared length/cancellation, policy
 withdrawal while body stalls, blocked late proofing/null session, lost actual
 owning read COMMIT and explicit fresh read, and actual owning-lock HTTP expiry
 with checked-audit rollback. Source/packed/current-head CI evidence is separate.
+
+All seven focused LOCAL and seven PACKED compiled public-export groups pass0fail0skip, strict declarations and correction-impact-http.js match. Consumer copied/hard-linked normally prepared dependencies, not a fresh dependency install. Source review clear for exact bounded private read-only native Fetch profile. Actual final-head CI remains required. PR26: https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/26.
