@@ -348,7 +348,7 @@
       },
       "dispositionPostgres": {
         "docs": "docs/DISPOSITION_POSTGRES.md",
-        "status": "Incomplete;5new owning TCP scenarios+11prior. Expanded strict compile/build/registry/unsafe-fixture refusal pass locally; actual final-head PostgreSQL qualification pending CI. Source-review clear test-only profile; no localPGDocker/currentIdentityTCP/closure/live claim.",
+        "status": "Accepted PR21 source85e3f5e93187684aa5d57d5cc71b81354abfa109 mergea2d84c63b8e96b676e028dabeb0dfa2ab3a2793f after109ordinary+16PG17 final-head CI. Test-only; no Identity-over-TCP/closure/live claim.",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/21"
       }
     },
@@ -382,8 +382,10 @@
         "AM-05-06",
         "AM-05-07"
       ],
-      "contributingPrs": [],
-      "implementationStatus": "planned",
+      "contributingPrs": [
+        22
+      ],
+      "implementationStatus": "Partial captured plan correction impact only; full original dependencies/findings/draft-output/closure/export and Editorial acceptance remain unmet. Eight focused local and packed public-export groups/types/runtime byte-match pass; final-head CI pending.",
       "acceptanceCriteria": [
         "A corrected date finds all affected claims, findings and draft outputs while leaving unrelated work usable.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
@@ -392,7 +394,12 @@
       "externalDependencies": [],
       "externalPrerequisites": [],
       "prs": [],
-      "origin": "original"
+      "origin": "original",
+      "capturedCorrectionImpact": {
+        "docs": "docs/CAPTURED_CORRECTION_IMPACT.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/22",
+        "status": "Incomplete; local+packed8/types/runtime match/source review clear; current-head CI pending. No current-authentication/worktruth/full correction impact claim."
+      }
     },
     {
       "id": "AM-06-01",
