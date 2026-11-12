@@ -47,6 +47,10 @@
     "./disposition-read-http": {
       "types": "./dist/disposition-read-http.d.ts",
       "default": "./dist/disposition-read-http.js"
+    },
+    "./disposition-write-http": {
+      "types": "./dist/disposition-write-http.d.ts",
+      "default": "./dist/disposition-write-http.js"
     }
   },
   "engines": {
