@@ -294,3 +294,64 @@ test("HTTP deadline reaches own locked NEW and CACHED admission before acknowled
   assert.equal(hit, 2);
   assert.equal((await f.store.load(c, f.plan.record)).table.history.length, 1);
 });
+
+test("blocked late session proofing cannot return a session or start write and all owned signals close", async (t) => {
+  const f = await ready(t),
+    signals: AbortSignal[] = [];
+  const handler = createDispositionWriteHandler(
+    f.facade,
+    f.membership,
+    {
+      authenticate: async (_request, signal) => {
+        signals.push(signal);
+        const end = performance.now() + 150;
+        while (performance.now() < end) {}
+        return { actorId: c.actor.id, requestId: c.requestId, csrfToken: csrf };
+      },
+    },
+    { ...f.fixed, origin, timeoutMs: 100 },
+    () => c.now,
+  );
+  assert.equal((await handler(new Request(base + "/session"))).status, 503);
+  assert.equal((await handler(post(f.body))).status, 503);
+  assert(signals.length === 2 && signals.every((s) => s.aborted));
+  assert.equal((await f.store.load(c, f.plan.record)).storage, null);
+});
+
+test("actual stale owning editions and omitted whole-plan question coverage deny without inventing new review history", async (t) => {
+  const f = await ready(t);
+  for (const body of [
+    { ...f.body, expectedStorageRevision: 99 },
+    {
+      ...f.body,
+      command: {
+        ...f.body.command,
+        planningStorage: { ...f.plan.storage, revision: 99 },
+      },
+    },
+    {
+      ...f.body,
+      command: {
+        ...f.body.command,
+        review: {
+          ...f.body.command.review,
+          questions: [
+            { ...f.body.command.review.questions[0]!, questionId: "invented" },
+          ],
+        },
+      },
+    },
+  ]) {
+    const response = await f.handler(post(body));
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), {
+      error: "disposition_write_unknown",
+    });
+    assert.equal((await f.store.load(c, f.plan.record)).storage, null);
+  }
+  assert.equal(
+    (await f.handler(post({ ...f.body, commandId: "explicit-valid" }))).status,
+    200,
+  );
+  assert.equal((await f.store.load(c, f.plan.record)).table.history.length, 1);
+});
