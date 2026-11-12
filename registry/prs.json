@@ -404,7 +404,11 @@
       "owningCorrectionImpact": {
         "docs": "docs/OWNING_CORRECTION_IMPACT.md",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/23",
-        "status": "Incomplete;8final focused local+8packed actual restricted-migration groups/typecheck/build/registry/types/runtime bytes pass; source review clear; final-head CI pending. Host-trusted Knowledge only; no current Identity/SourceConsent/full correction-impact claim."
+        "status": "Accepted PR23 sourceea52320cf1f00e55c517c4cc880d9dac2070d72c merge31202089c509f2e3e231d76805924df8e42b90bb after125ordinary+16existingPG17 all4headchecks; full125local/8local-packed/types/runtime qualified; full task partial."
+      },
+      "currentCorrectionImpact": {
+        "docs": "docs/CURRENT_CORRECTION_IMPACT.md",
+        "status": "Incomplete;8focused local actual three restricted-migration DB groups/typecheck/build/registry pass. Packed/source-review/final-head CI pending. No SourceConsent/worktruth/findingsdrafts/full correction impact/closure claim."
       }
     },
     {
