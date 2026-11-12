@@ -246,3 +246,68 @@ test("actual source lost COMMIT diagnostic and final Factual withdrawal are sani
     code: "impact_unavailable",
   });
 });
+
+test("overall outer request gate reaches actual owning SQL lock and rolls back only its checked audit", async (t) => {
+  const f = await setup(t);
+  const audits = await scoped(f.factual, c, (tx) => tx.audits());
+  let expired = false,
+    seen = false;
+  const { FactualRepository } = await import("../src/repository.ts");
+  const db: import("@accountability/evidence-sql/database").Database = {
+    ...f.factual,
+    transaction: (fn) =>
+      f.factual.transaction((q) =>
+        fn({
+          query: async <T>(sql: string, values?: unknown[]) => {
+            const result = await q.query<T>(sql, values);
+            if (values?.includes("factual.correction_impact.read_checked")) {
+              seen = true;
+              expired = true;
+            }
+            return result;
+          },
+        }),
+      ),
+  };
+  const repo = new FactualRepository(db, {
+    ...f.fixed,
+    humanIds: [c.actor.id],
+  });
+  const reader = new CurrentCorrectionImpactReader(
+    repo,
+    f.membership,
+    f.kFacade!,
+    f.fixed,
+  );
+  await assert.rejects(
+    reader.read(c, f.first.record, f.second.record, undefined, () => {
+      if (expired) throw Error("private request clock diagnostic");
+    }),
+    {
+      code: "impact_unavailable",
+      message: "Current correction impact unavailable",
+    },
+  );
+  assert.equal(seen, true);
+  assert.deepEqual(await scoped(f.factual, c, (tx) => tx.audits()), audits);
+});
+test("blocked late Knowledge acknowledgement cannot beat delayed timeout timer or reach owning read", async (t) => {
+  const f = await setup(t, 500);
+  let seen = false;
+  f.hooks.knowledge = () => {
+    f.hooks.knowledge = null;
+    seen = true;
+    const until = performance.now() + 600;
+    while (performance.now() < until) {}
+  };
+  await assert.rejects(f.reader.read(c, f.first.record, f.second.record), {
+    code: "impact_unavailable",
+  });
+  assert.equal(seen, true);
+  assert.equal(
+    (await scoped(f.factual, c, (tx) => tx.audits())).filter(
+      (a) => a.type === "factual.correction_impact.read_checked",
+    ).length,
+    0,
+  );
+});

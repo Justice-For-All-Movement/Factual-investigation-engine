@@ -1,0 +1,17 @@
+{
+  "profile": "actual-Identity-Knowledge-Factual-sequential",
+  "focusedLocal": 10,
+  "packedPublicExport": 10,
+  "strictDeclarations": "passed",
+  "runtimeBytes": "correction-impact-current.js matched",
+  "consumer": "copied/hard-linked prepared dependencies, not fresh dependency install",
+  "sourceReview": "clear; prototypes bound, incoming roles stripped, scoped exactrefs before Identity, source policy after SQL, whole basis comparisons, one locked monotonic request admission, awaitSQL/sanitized unknown read; no SourceConsent/distributed fence/full workflow claim",
+  "fullFinalHeadCI": "pending",
+  "sha256": {
+    "src/correction-impact-current.ts": "80001a07abcb60da4770715f79d840d95524a1fd34fd20e7b83b25aec58e82b2",
+    "tests/correction-impact-current.test.ts": "92ef5daee4394beca10c87ad2d4ab06dd61718b1dadf26f1a51c3a9ace6051a5",
+    "package.json": "78f47e9bdd240d5dae917dac18ca2470dccb972dbe17e757ee2e2a88723dcdfd",
+    "docs/CURRENT_CORRECTION_IMPACT.md": "95bcc5398a10bb231790ad00b3be0b39fd66960c49529ed38d1f1e540d31c87f",
+    "docs/ARCHITECTURE.md": "ac23e5ab4c6dc2fc0520936a570a85443ac427b38d99158a282c3fb5403d5b77"
+  }
+}
