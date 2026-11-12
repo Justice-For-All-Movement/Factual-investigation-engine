@@ -342,8 +342,12 @@
       },
       "dispositionWriteHttp": {
         "docs": "docs/DISPOSITION_WRITE_HTTP.md",
-        "status": "Incomplete protected writes;9final actual two-restrictedDBLOCAL+9PACKED public-exportgroups/strictdeclarations/two runtime-byte matches/typecheck/build/registry pass. Source-review clear limited profile;full/current-head CI pending. No assignment-delivery/SourceConsent/worktruth/closure/live qualification.",
+        "status": "Accepted PR20 source837ee4de merged934fe7fe after109ordinary+11existingPG17 final-head CI/full109local/9focused local-packed/types/two runtime modules. No full installed/live/workproof/closure claim.",
         "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/20"
+      },
+      "dispositionPostgres": {
+        "docs": "docs/DISPOSITION_POSTGRES.md",
+        "status": "Incomplete WIP test-only owning disposition session qualification. Strict integration typecheck/build/registry and unsafe-fixture refusal pass; actual new PostgreSQL cases await CI. Runtime/pins/contracts/migrations unchanged."
       }
     },
     {

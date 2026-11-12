@@ -1,0 +1,9 @@
+# Owning disposition PostgreSQL qualification — incomplete
+
+Extends the existing canonical stable-SDK migration/restricted LOGIN/explicit empty loopback factual_ci opt-in fixture. No new database service, runtime, policy, SDK pin or schema is introduced. Never reset a database; existing remote/query/fragment/existing-ledger refusal remains mandatory. Runtime contenders have distinct backend PIDs; an independent observer MUST see PostgreSQL Lock with nonempty pg_blocking_pids before releasing the actual public writer held BEFORE COMMIT. A timer alone is never proof.
+
+Initial two new scenarios: (1) owning disposition expected-zero contenders, winner transaction held before COMMIT, lost winning acknowledgement, fresh-pool identical original replay, one immutable review/effect/audit outbox; (2) new review waits behind actual public effort append, denies stale whole aggregate basis, but original cached ACK remains historical while a fresh read reports basis-changed/unresolved and retains the old assignment metadata. Actual current Identity/HTTP/source/Consent is not claimed: Context/fixed human policy are trusted host authority in this owning profile.
+
+Strict integration typecheck, build, registry and local unsafe-fixture child test pass. New actual PostgreSQL tests are unrun locally and await CI. Existing eleven cases remain. Local PostgreSQL/Docker unavailable. No PGlite-to-network inference, production TLS/failover/throughput/crash/multinode, distributed permission fencing, work proof, evaluated answers/closure/reopening, browser/AT or live deployment acceptance.
+
+Accepted Factual20 source837ee4de merged934fe7fe after final109ordinary+11existingPG17. Downstream Visual31 source6dc6c7c3 mergeda9036b2e after210finalCI/full210local/six local-packed groups; those UI tests are not PostgreSQL session qualification. PAM remains at foundation. All fixtures neutral/private; no provider sends/publication/payment/paid infrastructure.
