@@ -13,9 +13,8 @@ import {
 } from './store.ts';
 import type { Attempt, AttemptInput, AttemptKind, Kind, Outcome, Rec, StaleReason } from './store.ts';
 import {
-  LABELS, QUESTION_STATUSES, findingDefects, normContradiction, normFinding, normHypothesis, normLanes, normLead, normPlanItem, normPolicy, normQuestion, normUnknown,
-} from './model.ts';
-import type { ContradictionData, FindingData, HypothesisData, InvestigationData, LeadData, PlanItemData, ProposalData, QuestionData, StepData, UnknownData } from './model.ts';
+  LABELS, QUESTION_STATUSES, findingDefects, normContradiction, normFinding, normHypothesis, normLanes, normLead, normPlanItem, normPolicy, normQuestion, normUnknown, normInterview, normReferral } from './model.ts';
+import type { ContradictionData, FindingData, HypothesisData, InvestigationData, LeadData, PlanItemData, ProposalData, QuestionData, StepData, UnknownData, InterviewData, ReferralData } from './model.ts';
 import { assemblePackage, closureCheck, effortReport, renderHtml, renderMarkdown } from './package.ts';
 import type { ChronologyResult, ClosureCheck, EffortReport, EvidenceIndexEntry, Loaded } from './package.ts';
 import type { ContactLead, DiscoveryItem, InvestigationPorts, PortEffort } from './ports.ts';
@@ -30,7 +29,7 @@ const S = SCHEMA;
 export const manifest: EngineManifestV1 = {
   id: EID, name: 'factual-investigation', version: '1.0.0', kit: SERVICE_KIT_VERSION,
   capabilities: ['investigation:read', 'investigation:write', 'investigation:plan', 'investigation:execute', 'investigation:contact', 'investigation:approve', 'investigation:events'],
-  emits: ['investigation.opened', 'investigation.question_opened', 'investigation.outreach_required', 'investigation.lead_exhausted', 'investigation.finding_proposed', 'investigation.finding_approved', 'investigation.finding_returned',
+  emits: ['investigation.opened', 'investigation.interview_planned', 'investigation.interview_held', 'investigation.interview_declined', 'investigation.interview_cancelled', 'investigation.interview_stale', 'investigation.interview_blocked', 'investigation.referral_proposed', 'investigation.referral_approved', 'investigation.referral_rejected', 'investigation.referral_withdrawn', 'investigation.referral_stale', 'investigation.referral_blocked', 'investigation.question_opened', 'investigation.outreach_required', 'investigation.lead_exhausted', 'investigation.finding_proposed', 'investigation.finding_approved', 'investigation.finding_returned',
     'investigation.finding_stale', 'investigation.finding_blocked', 'investigation.step_completed', 'investigation.package_built', 'investigation.package_stale', 'investigation.package_blocked', 'investigation.review_ready', 'investigation.closed', 'investigation.reopened'],
   consumes: ['source_corrected', 'source_superseded', 'source_removed', 'permission_withdrawn', 'permission_changed', 'claim_changed', 'content_changed', 'rights_changed'],
 };
@@ -120,7 +119,8 @@ export function createEngine(deps: EngineDeps) {
     const investigation = await inv(q, ctx, id);
     const l = <T>(kind: Kind): Promise<Rec<T>[]> => listRecs<T>(q, ctx, kind, id);
     return { investigation, questions: await l<QuestionData>('question'), hypotheses: await l<HypothesisData>('hypothesis'), leads: await l<LeadData>('lead'), planItems: await l<PlanItemData>('plan_item'), findings: await l<FindingData>('finding'),
-      contradictions: await l<ContradictionData>('contradiction'), unknowns: await l<UnknownData>('unknown'), proposals: await l<ProposalData>('proposal'), steps: await l<StepData>('step'), attempts: await listAttemptRows(q, ctx, id) };
+      contradictions: await l<ContradictionData>('contradiction'), unknowns: await l<UnknownData>('unknown'), proposals: await l<ProposalData>('proposal'), steps: await l<StepData>('step'), attempts: await listAttemptRows(q, ctx, id),
+      interviews: await l<InterviewData>('interview'), referrals: await l<ReferralData>('referral') };
   }
   async function changeSeq(q: Sql, ctx: ServiceContext, id: string): Promise<number> {
     return Number(((await q.query<{ change_seq: string }>(`select change_seq::text as change_seq from ${S}.counters where tenant_id=$1 and project_id=$2 and investigation_id=$3`, [...scope(ctx), id]))[0] as { change_seq: string }).change_seq);
@@ -690,6 +690,64 @@ export function createEngine(deps: EngineDeps) {
       });
     },
 
+    // ───────────── interview plans and referral recommendations ─────────────
+    /** Plans an interview for a question. Nothing is sent: contact goes through the correspondence port as a draft. */
+    addInterview(ctx: ServiceContext, investigationId: string, input: { questionId: string; interviewee: string; why: string; topics?: readonly string[]; channel?: string | null; consentRef?: string | null; safeguards?: string | null; plannedFor?: string | null; idempotencyKey?: string }): Promise<Rec<InterviewData>> {
+      return cmd(ctx, 'investigation:write', 'addInterview', { investigationId, input }, async (tx) => {
+        const i = await inv(tx, ctx, investigationId, 'mutate'), n = normInterview({ ...obj(input, 'input'), status: 'planned', outcomeNote: null, outcomeRefs: [] });
+        await need(tx, ctx, 'question', n.data.questionId, i.id);
+        await bump(tx, ctx, i.id);
+        const rec = await insertRec<InterviewData>(tx, ctx, 'interview', i.id, i.data.compartment, n.status, n.data, 'interview planned');
+        await emit(tx, ctx, 'investigation.interview_planned', rec.ref, { investigationId: i.id, questionId: n.data.questionId });
+        return rec;
+      });
+    },
+    /** Records the outcome (held / declined / cancelled, with a note and evidence refs) or revises a planned interview. */
+    updateInterview(ctx: ServiceContext, interviewId: string, patch: { status?: string; outcomeNote?: string; outcomeRefs?: readonly string[]; plannedFor?: string | null; topics?: readonly string[]; channel?: string | null; consentRef?: string | null; safeguards?: string | null; draftRef?: string | null; expectedRevision?: number; idempotencyKey?: string }): Promise<Rec<InterviewData>> {
+      return cmd(ctx, 'investigation:write', 'updateInterview', { interviewId, patch }, async (tx) => {
+        const [r, i] = await child<InterviewData>(tx, ctx, 'interview', interviewId, 'mutate'), p = obj(patch, 'patch');
+        invariant(r.state === 'planned', 'invalid_state', `Interview is already ${r.state}; record a new interview instead`);
+        const n = normInterview({ ...r.data, status: r.state, ...p, questionId: r.data.questionId, interviewee: r.data.interviewee });
+        await bump(tx, ctx, i.id);
+        const out = await updateRec(tx, ctx, r, { state: n.status, data: n.data, expectedRevision: p.expectedRevision }, `interview ${n.status}`);
+        if (n.status !== 'planned') await emit(tx, ctx, `investigation.interview_${n.status}`, out.ref, { investigationId: i.id, questionId: n.data.questionId });
+        return out;
+      });
+    },
+    /** Proposes a referral recommendation resting on findings of this investigation. */
+    proposeReferral(ctx: ServiceContext, investigationId: string, input: { recipientType: string; recipientRef?: string | null; requestedAction: string; summary: string; basisFindingIds: readonly string[]; limitations?: readonly string[]; idempotencyKey?: string }): Promise<Rec<ReferralData>> {
+      return cmd(ctx, 'investigation:write', 'proposeReferral', { investigationId, input }, async (tx) => {
+        const i = await inv(tx, ctx, investigationId, 'mutate'), n = normReferral({ ...obj(input, 'input'), status: 'proposed', decision: null });
+        for (const f of n.data.basisFindingIds) await need(tx, ctx, 'finding', f, i.id);
+        await bump(tx, ctx, i.id);
+        const rec = await insertRec<ReferralData>(tx, ctx, 'referral', i.id, i.data.compartment, n.status, n.data, 'referral recommendation proposed');
+        await emit(tx, ctx, 'investigation.referral_proposed', rec.ref, { investigationId: i.id, basisFindingIds: [...n.data.basisFindingIds] });
+        return rec;
+      });
+    },
+    /**
+     * A human with investigation:approve approves or rejects a referral recommendation. Approval requires every basis
+     * finding to be currently approved (not stale or blocked). Approval records a decision; it does not send anything.
+     */
+    decideReferral(ctx: ServiceContext, referralId: string, input: { decision: 'approve' | 'reject' | 'withdraw'; rationale?: string; idempotencyKey?: string }): Promise<Rec<ReferralData>> {
+      return cmd(ctx, 'investigation:approve', 'decideReferral', { referralId, input }, async (tx) => {
+        if (ctx.actor.kind !== 'human') throw new DomainError('forbidden', 'A referral recommendation is decided by a person');
+        const [r, i] = await child<ReferralData>(tx, ctx, 'referral', referralId, 'mutate'), raw = obj(input, 'input');
+        const decision = oneOf(raw.decision, ['approve', 'reject', 'withdraw'] as const, 'decision'), rationale = optText(raw.rationale, 'rationale');
+        invariant(decision === 'withdraw' ? r.state === 'approved' || r.state === 'proposed' : r.state === 'proposed' || (r.state === 'approved' && r.stale), 'invalid_state', `Referral is ${r.state}`);
+        invariant(decision === 'approve' || rationale !== null, 'invalid_input', 'Rejecting or withdrawing a referral needs a rationale');
+        if (decision === 'approve') for (const id of r.data.basisFindingIds) {
+          const f = await rawFinding(tx, ctx, id);
+          invariant(f.state === 'approved' && !f.stale && !f.blocked, 'invalid_state', 'Every finding a referral rests on must be currently approved (not stale or blocked)');
+        }
+        const state = decision === 'approve' ? 'approved' : decision === 'reject' ? 'rejected' : 'withdrawn';
+        await bump(tx, ctx, i.id);
+        const out = await updateRec(tx, ctx, r, { state, data: { ...r.data, decision: { by: ctx.actor.id, at: ctx.now, rationale } }, clearStale: decision === 'approve' }, `referral ${state}`);
+        await emit(tx, ctx, `investigation.referral_${state}`, out.ref, { investigationId: i.id });
+        return out;
+      });
+    },
+
     // ───────────── proposals (model or agent suggestions are data until accepted) ─────────────
     proposeQuestions(ctx: ServiceContext, investigationId: string, input: { items: readonly unknown[]; rationale: string; source?: string; idempotencyKey?: string }): Promise<Rec<ProposalData>[]> { return propose(ctx, investigationId, 'question', input); },
     proposeSteps(ctx: ServiceContext, investigationId: string, input: { items: readonly unknown[]; rationale: string; source?: string; idempotencyKey?: string }): Promise<Rec<ProposalData>[]> { return propose(ctx, investigationId, 'step', input); },
@@ -957,6 +1015,20 @@ export function createEngine(deps: EngineDeps) {
           affected.push(ref); staleFindings.add(f.id);
           await emit(tx, ctx, effect === 'stale' ? 'investigation.finding_stale' : 'investigation.finding_blocked', ref, { reason, cause: eventId, kind, refs: matched, investigationId: f.investigationId, wasApproved: f.state === 'approved' });
         }
+        // Interviews whose recorded outcome cites a changed source, and referral recommendations resting on a flagged finding.
+        const dependents = await tx.query<Record<string, unknown>>(`select * from ${S}.records where tenant_id=$1 and project_id=$2 and kind in ('interview','referral') and state not in ('withdrawn','rejected','cancelled') order by seq for update`, [...scope(ctx)]);
+        for (const row of dependents) {
+          const rec = { kind: row.kind as Kind, id: row.id as string, revision: row.revision as number, investigationId: row.investigation_id as string };
+          const data = row.data as { basisFindingIds?: string[] };
+          const matched = hit(row.sources as string[]);
+          const viaFinding = (data.basisFindingIds ?? []).filter((f) => staleFindings.has(f));
+          if (matched.length === 0 && viaFinding.length === 0) continue;
+          await flagRec(tx, ctx, rec as unknown as Rec<unknown>, { effect, kind, reason, cause: eventId, refs: matched.length > 0 ? matched : refs, at: ctx.now });
+          await bump(tx, ctx, rec.investigationId);
+          const ref = uref(EID, rec.kind, rec.id, rec.revision);
+          affected.push(ref);
+          await emit(tx, ctx, `investigation.${rec.kind}_${effect}`, ref, { reason, cause: eventId, kind, refs: matched, basisFindingIds: viaFinding, investigationId: rec.investigationId, wasApproved: row.state === 'approved' });
+        }
         const pk = await tx.query(`select investigation_id, version, sources, finding_ids from ${S}.packages where tenant_id=$1 and project_id=$2 and (finding_ids && $4 or exists (select 1 from unnest(sources) x where split_part(x,'@',1) = any($3))) order by investigation_id, version for update`, [...scope(ctx), bare, [...staleFindings]]);
         for (const p of pk) {
           const matched = hit(p.sources as string[]);
@@ -1063,6 +1135,10 @@ export function routes(engine: InvestigationEngine): Route[] {
     post('/v1/investigations/:id/contradictions', (id, body, ctx) => engine.addContradiction(ctx, id, body), 201),
     patch('/v1/contradictions/:id', (id, body, ctx) => engine.updateContradiction(ctx, id, body)),
     post('/v1/investigations/:id/unknowns', (id, body, ctx) => engine.addUnknown(ctx, id, body), 201),
+    post('/v1/investigations/:id/interviews', (id, body, ctx) => engine.addInterview(ctx, id, body), 201),
+    post('/v1/interviews/:id', (id, body, ctx) => engine.updateInterview(ctx, id, body)),
+    post('/v1/investigations/:id/referrals', (id, body, ctx) => engine.proposeReferral(ctx, id, body), 201),
+    post('/v1/referrals/:id/decision', (id, body, ctx) => engine.decideReferral(ctx, id, body)),
     patch('/v1/unknowns/:id', (id, body, ctx) => engine.updateUnknown(ctx, id, body)),
     post('/v1/investigations/:id/proposals/questions', (id, body, ctx) => engine.proposeQuestions(ctx, id, body), 201),
     post('/v1/investigations/:id/proposals/steps', (id, body, ctx) => engine.proposeSteps(ctx, id, body), 201),

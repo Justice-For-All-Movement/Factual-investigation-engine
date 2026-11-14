@@ -112,6 +112,10 @@ updateContradiction(ctx, contradictionId, { description?, contradicting?, status
 addUnknown(ctx, investigationId, { description, whyUnknown, whatWouldResolve?, questionId?, attemptIds? }): Promise<Rec<UnknownData>>
 updateUnknown(ctx, unknownId, { description?, whyUnknown?, whatWouldResolve?, status?, resolutionNote?, attemptIds?, expectedRevision? }): Promise<Rec<UnknownData>>
 
+addInterview(ctx, investigationId, { questionId, interviewee, why, topics?, channel?, consentRef?, safeguards?, plannedFor? }): Promise<Rec<InterviewData>>   // write; contacts nobody
+updateInterview(ctx, interviewId, { status?: 'held'|'declined'|'cancelled', outcomeNote?, outcomeRefs?, plannedFor?, topics?, channel?, consentRef?, safeguards?, draftRef? }): Promise<Rec<InterviewData>>
+proposeReferral(ctx, investigationId, { recipientType, recipientRef?, requestedAction, summary, basisFindingIds, limitations? }): Promise<Rec<ReferralData>>   // write
+decideReferral(ctx, referralId, { decision: 'approve'|'reject'|'withdraw', rationale? }): Promise<Rec<ReferralData>>   // approve; human only; basis findings must be currently approved
 proposeQuestions(ctx, investigationId, { items, rationale, source? }): Promise<Rec<ProposalData>[]>
 proposeSteps(ctx, investigationId, { items, rationale, source? }): Promise<Rec<ProposalData>[]>
 decideProposal(ctx, proposalId, { decision: 'accept' | 'reject', rationale? }): Promise<Rec<ProposalData>>
@@ -231,6 +235,7 @@ Standard: `GET /healthz`, `GET /v1/manifest`, `GET /v1/inspect?ref=`, `GET /v1/s
 | `POST /v1/investigations/:id/findings` · `PATCH /v1/findings/:id` · `POST /v1/findings/:id/submit|review|withdraw` | findings |
 | `POST /v1/investigations/:id/contradictions` · `PATCH /v1/contradictions/:id` · `POST /v1/investigations/:id/unknowns` · `PATCH /v1/unknowns/:id` | registers |
 | `POST /v1/investigations/:id/proposals/questions|steps` · `POST /v1/proposals/:id/decision` | proposals |
+| `POST /v1/investigations/:id/interviews` · `POST /v1/interviews/:id` · `POST /v1/investigations/:id/referrals` · `POST /v1/referrals/:id/decision` | interview plans, referral recommendations |
 | `POST /v1/investigations/:id/plan` · `POST /v1/steps/:id/execute` (202) · `POST /v1/steps/:id/complete` · `GET /v1/jobs/:id` · `POST /v1/jobs/:id/:action` | planning, execution |
 | `GET /v1/investigations/:id/closure-check` · `POST /v1/investigations/:id/review|close|reopen` | closure |
 | `POST|GET /v1/investigations/:id/packages` · `GET /v1/investigations/:id/packages/:version` (`latest` allowed; `?format=markdown|html`) | packages |
@@ -283,3 +288,16 @@ Not implemented or not verified:
 - Compartments are per investigation (children inherit); there is no per-record compartment.
 - A package whose build was interrupted after the database commit but before the object-store copy has no object copy.
 - Budget reservations of `uncertain` steps are committed (cost assumed incurred), not reconciled.
+
+## Interview plans and referral recommendations
+
+Both are revisioned records of the investigation (kinds `interview`, `referral`; urefs `E08:interview:<id>@<rev>`,
+`E08:referral:<id>@<rev>`), visible in `inspect`, `search`, the package (`interviews`, `referralRecommendations`) and the
+closure check. An interview plan names the interviewee by description or pseudonymous reference only (contact details
+are refused: they belong to the correspondence engine) and never contacts anyone. A planned interview on a material
+question blocks closure until it is recorded as held, declined or cancelled with a note. A referral recommendation rests
+on findings of this investigation; a person holding `investigation:approve` approves it only while every basis finding
+is currently approved. When a basis finding becomes stale or blocked, or a source an interview outcome cites changes,
+`applyUpstreamChange` flags the record (events `investigation.referral_stale|blocked`, `investigation.interview_stale|blocked`)
+without rewriting it; an approved stale referral blocks closure until decided again. Nothing is ever sent to a referral
+recipient by this engine.

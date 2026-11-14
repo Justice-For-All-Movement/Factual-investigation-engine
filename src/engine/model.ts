@@ -183,6 +183,42 @@ export function normUnknown(raw: Record<string, unknown>): { status: string; dat
   return { status, data: { description: text(raw.description, 'description'), whyUnknown: text(raw.whyUnknown, 'whyUnknown'), whatWouldResolve: optText(raw.whatWouldResolve, 'whatWouldResolve'), questionId: optText(raw.questionId, 'questionId', 128), attemptIds: idList(raw.attemptIds, 'attemptIds'), resolutionNote } };
 }
 
+/**
+ * An interview plan. The engine never contacts anyone: `interviewee` is a description or pseudonymous reference (no
+ * contact details), and any message goes through the correspondence port as a draft a person sends.
+ */
+export type InterviewData = Readonly<{
+  questionId: string; interviewee: string; why: string; topics: readonly string[]; channel: string | null; consentRef: string | null;
+  safeguards: string | null; plannedFor: string | null; outcomeNote: string | null; outcomeRefs: readonly string[]; draftRef: string | null;
+}>;
+export const INTERVIEW_STATES = ['planned', 'held', 'declined', 'cancelled'] as const;
+export function normInterview(raw: Record<string, unknown>): { status: string; data: InterviewData } {
+  const status = oneOf(raw.status ?? 'planned', INTERVIEW_STATES, 'status');
+  const outcomeNote = optText(raw.outcomeNote, 'outcomeNote');
+  invariant(status === 'planned' || outcomeNote !== null, 'invalid_input', 'A held, declined or cancelled interview needs outcomeNote');
+  const plannedFor = optText(raw.plannedFor, 'plannedFor', 40);
+  invariant(plannedFor === null || !Number.isNaN(Date.parse(plannedFor)), 'invalid_input', 'plannedFor must be a date-time');
+  const interviewee = text(raw.interviewee, 'interviewee', 300);
+  invariant(!/@|\+?\d[\d\s().-]{6,}\d/.test(interviewee), 'invalid_input', 'interviewee is a description or pseudonymous reference; contact details belong to the correspondence engine');
+  return { status, data: { questionId: text(raw.questionId, 'questionId', 128), interviewee, why: text(raw.why, 'why'), topics: list(raw.topics ?? [], 'topics', 30).map((t) => text(t, 'topic', 500)),
+    channel: optText(raw.channel, 'channel', 100), consentRef: optRef(raw.consentRef, 'consentRef'), safeguards: optText(raw.safeguards, 'safeguards'), plannedFor,
+    outcomeNote, outcomeRefs: refList(raw.outcomeRefs ?? [], 'outcomeRefs'), draftRef: optRef(raw.draftRef, 'draftRef') } };
+}
+
+/** A recommendation to refer the matter to a kind of recipient. It is decided by a human holding investigation:approve; nothing is sent. */
+export type ReferralData = Readonly<{
+  recipientType: string; recipientRef: string | null; requestedAction: string; summary: string; basisFindingIds: readonly string[];
+  limitations: readonly string[]; decision: Readonly<{ by: string; at: string; rationale: string | null }> | null;
+}>;
+export function normReferral(raw: Record<string, unknown>): { status: string; data: ReferralData } {
+  const status = oneOf(raw.status ?? 'proposed', ['proposed', 'approved', 'rejected', 'withdrawn'] as const, 'status');
+  const basisFindingIds = idList(raw.basisFindingIds, 'basisFindingIds');
+  invariant(basisFindingIds.length >= 1, 'invalid_input', 'A referral recommendation rests on at least one finding');
+  return { status, data: { recipientType: text(raw.recipientType, 'recipientType', 200), recipientRef: optRef(raw.recipientRef, 'recipientRef'), requestedAction: text(raw.requestedAction, 'requestedAction'),
+    summary: text(raw.summary, 'summary'), basisFindingIds, limitations: list(raw.limitations ?? [], 'limitations', 50).map((t) => text(t, 'limitation', 2000)),
+    decision: (raw.decision ?? null) as ReferralData['decision'] } };
+}
+
 export type ProposalData = Readonly<{
   type: 'question' | 'step'; item: Json; rationale: string; proposedBy: Readonly<{ id: string; kind: string }>; source: string | null;
   decision: Readonly<{ by: string; at: string; rationale: string | null; auto: boolean; createdRef: string | null }> | null;

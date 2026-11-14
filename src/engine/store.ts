@@ -131,8 +131,8 @@ function collectText(value: unknown, into: string[] = []): string[] {
 }
 
 // ───────────────────────────── Revisioned records ─────────────────────────────
-export type Kind = 'investigation' | 'question' | 'hypothesis' | 'lead' | 'plan_item' | 'finding' | 'contradiction' | 'unknown' | 'proposal' | 'step';
-export const KINDS: readonly Kind[] = ['investigation', 'question', 'hypothesis', 'lead', 'plan_item', 'finding', 'contradiction', 'unknown', 'proposal', 'step'];
+export type Kind = 'investigation' | 'question' | 'hypothesis' | 'lead' | 'plan_item' | 'finding' | 'contradiction' | 'unknown' | 'proposal' | 'step' | 'interview' | 'referral';
+export const KINDS: readonly Kind[] = ['investigation', 'question', 'hypothesis', 'lead', 'plan_item', 'finding', 'contradiction', 'unknown', 'proposal', 'step', 'interview', 'referral'];
 export type StaleReason = Readonly<{ effect: 'stale' | 'blocked'; kind: string; reason: string; cause: string; refs: readonly string[]; at: string; resolved?: boolean }>;
 export type Rec<T = Record<string, unknown>> = Readonly<{
   ref: string; kind: Kind; id: string; investigationId: string; revision: number; state: string; data: T;

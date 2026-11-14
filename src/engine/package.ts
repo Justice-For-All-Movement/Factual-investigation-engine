@@ -3,13 +3,14 @@ import { digest } from '../contracts.ts';
 import type { Json } from '../contracts.ts';
 import { NOT_OBTAINED } from './store.ts';
 import type { Attempt, Rec, SourceLink } from './store.ts';
-import type { ContradictionData, FindingData, HypothesisData, InvestigationData, LeadData, PlanItemData, ProposalData, QuestionData, StepData, UnknownData } from './model.ts';
+import type { ContradictionData, FindingData, HypothesisData, InterviewData, InvestigationData, LeadData, PlanItemData, ProposalData, QuestionData, ReferralData, StepData, UnknownData } from './model.ts';
 import type { ChronologyEntry } from './ports.ts';
 
 export type Loaded = Readonly<{
   investigation: Rec<InvestigationData>; questions: readonly Rec<QuestionData>[]; hypotheses: readonly Rec<HypothesisData>[]; leads: readonly Rec<LeadData>[];
   planItems: readonly Rec<PlanItemData>[]; findings: readonly Rec<FindingData>[]; contradictions: readonly Rec<ContradictionData>[]; unknowns: readonly Rec<UnknownData>[];
   proposals: readonly Rec<ProposalData>[]; steps: readonly Rec<StepData>[]; attempts: readonly Attempt[];
+  interviews: readonly Rec<InterviewData>[]; referrals: readonly Rec<ReferralData>[];
 }>;
 export type ClosureCheck = Readonly<{ ready: boolean; blockers: readonly Readonly<{ code: string; ref: string; message: string }>[]; warnings: readonly Readonly<{ code: string; ref: string; message: string }>[] }>;
 
@@ -43,6 +44,12 @@ export function closureCheck(s: Loaded): ClosureCheck {
   for (const l of s.leads) if (['new', 'assessing', 'active'].includes(l.state)) warnings.push({ code: 'lead_open', ref: l.ref, message: `Lead not pursued to an end (${l.state}): ${l.data.description}` });
   for (const p of s.planItems) if (['planned', 'running'].includes(p.state)) warnings.push({ code: 'plan_item_unexecuted', ref: p.ref, message: `Plan item not executed (${p.state}): ${p.data.description}` });
   for (const p of s.proposals) if (p.state === 'proposed') warnings.push({ code: 'proposal_undecided', ref: p.ref, message: 'A proposed question or step was neither accepted nor rejected' });
+  const material = new Set(s.questions.filter((q) => q.data.material).map((q) => q.id));
+  for (const iv of s.interviews) if (iv.state === 'planned') (material.has(iv.data.questionId) ? blockers : warnings).push({ code: 'interview_pending', ref: iv.ref, message: `Planned interview has no recorded outcome (held, declined or cancelled): ${iv.data.why}` });
+  for (const r of s.referrals) {
+    if (r.state === 'proposed') warnings.push({ code: 'referral_undecided', ref: r.ref, message: `Referral recommendation was neither approved nor rejected: ${r.data.requestedAction}` });
+    else if (r.state === 'approved' && (r.stale || r.blocked)) blockers.push({ code: 'referral_stale', ref: r.ref, message: 'An approved referral recommendation rests on a finding that changed: decide it again or withdraw it' });
+  }
   return { ready: blockers.length === 0, blockers, warnings };
 }
 
@@ -116,6 +123,11 @@ export function assemblePackage(s: Loaded, extra: { version: number; builtAt: st
         supporting: h.data.supporting.map(link), contradicting: h.data.contradicting.map(link), status: h.state, statusRationale: h.data.statusRationale, howItFared: fared[h.state] ?? h.state })) })),
     contradictions: s.contradictions.map((c) => ({ id: c.id, ref: c.ref, description: c.data.description, accountExcerpt: c.data.accountExcerpt, accountRef: c.data.accountRef, contradicting: c.data.contradicting.map(link), questionId: c.data.questionId, findingId: c.data.findingId, status: c.state, resolutionNote: c.data.resolutionNote })),
     unknowns: s.unknowns.map((u) => ({ id: u.id, ref: u.ref, description: u.data.description, label: 'unknown', whyUnknown: u.data.whyUnknown, whatWouldResolve: u.data.whatWouldResolve, questionId: u.data.questionId, attemptIds: [...u.data.attemptIds], status: u.state, resolutionNote: u.data.resolutionNote })),
+    interviews: s.interviews.map((iv) => ({ id: iv.id, ref: iv.ref, questionId: iv.data.questionId, interviewee: iv.data.interviewee, why: iv.data.why, topics: [...iv.data.topics], status: iv.state,
+      plannedFor: iv.data.plannedFor, outcomeNote: iv.data.outcomeNote, outcomeRefs: [...iv.data.outcomeRefs], consentRef: iv.data.consentRef, stale: iv.stale })),
+    referralRecommendations: s.referrals.filter((r) => r.state !== 'withdrawn').map((r) => ({ id: r.id, ref: r.ref, status: r.state, recipientType: r.data.recipientType, recipientRef: r.data.recipientRef,
+      requestedAction: r.data.requestedAction, summary: r.data.summary, basisFindingIds: [...r.data.basisFindingIds], limitations: [...r.data.limitations], decision: r.data.decision as unknown as Json, stale: r.stale || r.blocked,
+      note: 'A recommendation recorded by the investigation team. Nothing has been sent to any recipient.' })),
     attempts: {
       total: s.attempts.length,
       byOutcome: Object.fromEntries([...new Set(s.attempts.map((a) => a.outcome))].sort().map((o) => [o, s.attempts.filter((a) => a.outcome === o).length])),
