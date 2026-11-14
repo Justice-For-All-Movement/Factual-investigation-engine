@@ -643,3 +643,496 @@ for (const mode of ["correction", "read"] as const)
       }
     },
   );
+
+for (const mode of ["effort", "plan", "expiry"] as const)
+  test(
+    `coverage ${mode} waits behind a real public writer before observing its exact basis`,
+    { timeout: 20000 },
+    async (t) => {
+      const f = await fixture(t, "coverage-" + mode),
+        x = input(f.context);
+      const plan = await f.sa.append(
+        f.context,
+        0,
+        x.knowledge,
+        x.command,
+        "plan",
+      );
+      const q = effort(plan.record),
+        first = await f.sa.recordEffort(f.context, 0, q, "first");
+      const locked = gate(),
+        release = gate(),
+        writer = new FactualRepository(held(f.a, locked, release), f.policy);
+      const writing =
+        mode === "plan"
+          ? writer.append(
+              f.context,
+              1,
+              x.knowledge,
+              { ...x.command, expectedRevision: 1 },
+              "next-plan",
+            )
+          : writer.recordEffort(
+              f.context,
+              1,
+              {
+                ...q,
+                id: "correction",
+                expectedSequence: 1,
+                corrects: first.record,
+                detail: "Corrected captured effort",
+              },
+              "correction",
+            );
+      const written = writing.then(
+        (value) => ({ value }),
+        (error) => ({ error }),
+      );
+      let pending: Promise<unknown> | undefined;
+      try {
+        await Promise.race([locked.promise, writing]);
+        const selected =
+          mode === "plan" ? { ...plan.record, revision: 2 } : plan.record;
+        const started = performance.now();
+        pending = f.sb.loadCoverage(
+          f.context,
+          selected,
+          undefined,
+          mode === "expiry" ? 1000 : 10000,
+        );
+        const read = pending.then(
+          (value) => ({ value }),
+          (error) => ({ error }),
+        );
+        await observedWait(f.id);
+        if (mode === "expiry")
+          await new Promise((r) =>
+            setTimeout(r, Math.max(0, 1100 - (performance.now() - started))),
+          );
+        release.resolve();
+        assert.ok("value" in (await written));
+        const result = await read;
+        if (mode === "expiry") {
+          assert.ok("error" in result);
+          assert.equal(
+            (result.error as { code: string }).code,
+            "coverage_unavailable",
+          );
+          await scoped(f.b, f.context, async (tx) =>
+            assert.equal(
+              (await tx.audits()).filter(
+                (e) => e.type === "factual.coverage.read_checked",
+              ).length,
+              0,
+            ),
+          );
+        } else {
+          assert.ok("value" in result);
+          const snapshot = result.value as Awaited<
+            ReturnType<FactualRepository["loadCoverage"]>
+          >;
+          assert.equal(
+            snapshot.planningStorage.revision,
+            mode === "plan" ? 2 : 1,
+          );
+          assert.equal(
+            snapshot.effortStorage?.revision,
+            mode === "plan" ? 1 : 2,
+          );
+          assert.equal(snapshot.coverage.questions[0]!.status, "unresolved");
+          if (mode === "plan") {
+            assert.equal(snapshot.coverage.questions[0]!.effortRefs.length, 0);
+            assert.deepEqual(snapshot.coverage.historicalEffectiveEffortRefs, [
+              first.record,
+            ]);
+            await assert.rejects(f.sb.loadCoverage(f.context, plan.record), {
+              code: "stale_plan",
+            });
+          } else {
+            assert.equal(snapshot.coverage.effortHistory.length, 2);
+            assert.deepEqual(
+              snapshot.coverage.effortHistory[1]!.corrects,
+              first.record,
+            );
+            assert.equal(
+              snapshot.coverage.questions[0]!.effortRefs[0]!.id,
+              "correction",
+            );
+          }
+        }
+        await f.b.close();
+        const fresh = new FactualRepository(f.connect("fresh"), f.policy);
+        const current = await fresh.loadCoverage(f.context, selected);
+        assert.equal(current.planningStorage.revision, mode === "plan" ? 2 : 1);
+        assert.equal(current.effortStorage?.revision, mode === "plan" ? 1 : 2);
+      } finally {
+        release.resolve();
+        await written;
+        await pending?.catch(() => {});
+      }
+    },
+  );
+
+test(
+  "coverage lost read COMMIT remains unknown and fresh pool reads unchanged private history",
+  { timeout: 20000 },
+  async (t) => {
+    const f = await fixture(t, "coverage-lost-read"),
+      x = input(f.context);
+    const ack = await f.sa.append(f.context, 0, x.knowledge, x.command, "plan");
+    let lost = true;
+    const uncertain: Database = {
+      close: async () => {},
+      transaction: async (fn) => {
+        const result = await f.a.transaction(fn);
+        if (lost) {
+          lost = false;
+          throw Error("Fixture lost read COMMIT acknowledgement");
+        }
+        return result;
+      },
+    };
+    await assert.rejects(
+      new FactualRepository(uncertain, f.policy).loadCoverage(
+        f.context,
+        ack.record,
+      ),
+    );
+    await f.a.close();
+    const fresh = f.connect("fresh"),
+      current = new FactualRepository(fresh, f.policy);
+    const result = await current.loadCoverage(f.context, ack.record);
+    assert.deepEqual(result.planningStorage, ack.storage);
+    assert.equal(result.effortStorage, null);
+    await scoped(fresh, f.context, async (tx) => {
+      const audit = await tx.audits();
+      assert.ok(verifyAudit(audit));
+      assert.equal(
+        audit.filter((e) => e.type === "factual.coverage.read_checked").length,
+        2,
+      );
+      assert.equal((await tx.get(PLANNING_KIND, PLANNING_KEY))?.revision, 1);
+    });
+  },
+);
+
+// Owning disposition semantics only. Host Context is trusted; no current Identity-over-TCP claim.
+import { QuestionDispositionRepository, DISPOSITION_KIND, DISPOSITION_KEY } from "../src/disposition-repository.ts";
+import type { DispositionCommand } from "../src/disposition-repository.ts";
+function reviewCommand(plan: Awaited<ReturnType<FactualRepository["append"]>>): DispositionCommand {
+  return {
+    planningStorage: plan.storage, effortStorage: null,
+    review: {
+      id: "review", expectedSequence: 0, supersedes: null, selected: plan.record,
+      questions: [{ questionId: "time", status: "assigned", reason: "Seek an authorized fictional record",
+        assigneeId: "host-label", reviewAt: "2026-02-01T00:00:00.000Z" }],
+      reopeningTriggers: ["New authorized fixture"],
+    },
+  };
+}
+test("disposition independent contenders wait on public writer; lost winning COMMIT replays one immutable review", {timeout:20000}, async t => {
+  const f = await fixture(t,"review-contenders"), x = input(f.context);
+  const plan = await f.sa.append(f.context,0,x.knowledge,x.command,"plan"), command = reviewCommand(plan);
+  const locked = gate(), release = gate();
+  let lost = true;
+  const uncertain: Database = {close:async()=>{},transaction:async fn=>{
+    const value = await held(f.a,locked,release).transaction(fn);
+    if(lost){lost=false;throw Error("Fixture lost review COMMIT acknowledgement");}
+    return value;
+  }};
+  const writing = new QuestionDispositionRepository(uncertain,f.policy).record(f.context,0,command,"winner");
+  const written = writing.then(value=>({value}),error=>({error}));
+  let pending: Promise<unknown> | undefined;
+  try {
+    await Promise.race([locked.promise,writing]);
+    pending = new QuestionDispositionRepository(f.b,f.policy).record(f.context,0,{...command,review:{...command.review,id:"contender"}},"contender");
+    const competing = pending.then(value=>({value}),error=>({error}));
+    await observedWait(f.id); release.resolve();
+    assert.ok("error" in await written);
+    const other = await competing; assert.ok("error" in other); assert.equal((other.error as {code:string}).code,"revision_conflict");
+    await f.a.close(); await f.b.close();
+    const fresh = f.connect("fresh"), store = new QuestionDispositionRepository(fresh,f.policy);
+    const ack = await store.record(f.context,0,command,"winner");
+    assert.equal(ack.storage.revision,1); assert.equal(ack.record.id,"review");
+    const result = await store.load(f.context,plan.record);
+    assert.deepEqual(result.storage,ack.storage); assert.equal(result.table.history.length,1);
+    assert.deepEqual(result.planningStorage,plan.storage); assert.equal(result.effortStorage,null);
+    await effects(fresh,f.context,"factual.question_review.recorded","factual.question_review.recorded",1);
+  } finally {release.resolve();await written;await pending?.catch(()=>{});}
+});
+
+test("disposition new write waits behind actual effort append then denies stale aggregate basis while historical ACK stays historical", {timeout:20000}, async t=>{
+  const f=await fixture(t,"review-effort"),x=input(f.context);
+  const plan=await f.sa.append(f.context,0,x.knowledge,x.command,"plan"),command=reviewCommand(plan);
+  const store=new QuestionDispositionRepository(f.a,f.policy), first=await store.record(f.context,0,command,"first");
+  const locked=gate(),release=gate();
+  const writing=new FactualRepository(held(f.a,locked,release),f.policy).recordEffort(f.context,0,effort(plan.record),"effort");
+  const written=writing.then(value=>({value}),error=>({error}));let pending:Promise<unknown>|undefined;
+  try {
+    await Promise.race([locked.promise,writing]);
+    pending=new QuestionDispositionRepository(f.b,f.policy).record(f.context,1,{...command,review:{...command.review,id:"second",expectedSequence:1,supersedes:first.record}},"second");
+    const competing=pending.then(value=>({value}),error=>({error}));
+    await observedWait(f.id);release.resolve();assert.ok("value" in await written);
+    const result=await competing;assert.ok("error" in result);assert.equal((result.error as {code:string}).code,"revision_conflict");
+    await f.b.close();const fresh=f.connect("fresh"),current=new QuestionDispositionRepository(fresh,f.policy);
+    assert.deepEqual(await current.record(f.context,0,command,"first"),first);
+    const table=await current.load(f.context,plan.record);assert.equal(table.storage?.revision,1);assert.equal(table.effortStorage?.revision,1);
+    assert.equal(table.table.reviewRequired,"basis-changed");assert.equal(table.table.questions[0]!.disposition.status,"unresolved");
+    assert.equal(table.table.history[0]!.questions[0]!.status,"assigned");
+    await effects(fresh,f.context,"factual.question_review.recorded","factual.question_review.recorded",1);
+  } finally {release.resolve();await written;await pending?.catch(()=>{});}
+});
+
+for (const mode of ["plan", "expiry"] as const)
+  test(`disposition ${mode} read waits behind real public writer and preserves immutable review history`, {timeout:20000}, async t=>{
+    const f=await fixture(t,"review-"+mode),x=input(f.context);
+    const plan=await f.sa.append(f.context,0,x.knowledge,x.command,"plan"),command=reviewCommand(plan);
+    const first=await new QuestionDispositionRepository(f.a,f.policy).record(f.context,0,command,"review");
+    const locked=gate(),release=gate(),writer=new FactualRepository(held(f.a,locked,release),f.policy);
+    const writing=mode==="plan"
+      ? writer.append(f.context,1,x.knowledge,{...x.command,expectedRevision:1},"next-plan")
+      : writer.recordEffort(f.context,0,effort(plan.record),"effort");
+    const written=writing.then(value=>({value}),error=>({error}));let pending:Promise<unknown>|undefined;
+    const selected=mode==="plan"?{...plan.record,revision:2}:plan.record;
+    try {
+      await Promise.race([locked.promise,writing]);const started=performance.now();
+      pending=new QuestionDispositionRepository(f.b,f.policy).load(f.context,selected,undefined,mode==="expiry"?1000:10000);
+      const reading=pending.then(value=>({value}),error=>({error}));await observedWait(f.id);
+      if(mode==="expiry")await new Promise(r=>setTimeout(r,Math.max(0,1100-(performance.now()-started))));
+      release.resolve();assert.ok("value" in await written);const result=await reading;
+      if(mode==="expiry") {
+        assert.ok("error" in result);assert.equal((result.error as {code:string}).code,"disposition_unavailable");
+        await scoped(f.b,f.context,async tx=>assert.equal((await tx.audits()).filter(e=>e.type==="factual.question_review.read_checked").length,0));
+      } else {
+        assert.ok("value" in result);const value=result.value as Awaited<ReturnType<QuestionDispositionRepository["load"]>>;
+        assert.equal(value.planningStorage.revision,2);assert.equal(value.effortStorage,null);assert.equal(value.table.reviewRequired,"basis-changed");
+        assert.equal(value.table.history[0]!.basis.plan.revision,1);assert.equal(value.table.questions[0]!.disposition.status,"unresolved");
+        await assert.rejects(new QuestionDispositionRepository(f.b,f.policy).record(f.context,0,command,"review"),{code:"stale_plan"});
+      }
+      await f.b.close();const fresh=f.connect("fresh"),current=await new QuestionDispositionRepository(fresh,f.policy).load(f.context,selected);
+      assert.deepEqual(current.storage,first.storage);assert.equal(current.table.history.length,1);
+      assert.equal(current.table.history[0]!.questions[0]!.status,"assigned");assert.equal(current.table.questions[0]!.disposition.status,"unresolved");
+      assert.equal(current.planningStorage.revision,mode==="plan"?2:1);assert.equal(current.effortStorage?.revision??0,mode==="plan"?0:1);
+    } finally {release.resolve();await written;await pending?.catch(()=>{});}
+  });
+
+test("disposition lost checked-read COMMIT is withheld; fresh pool retains both audits and unchanged three-aggregate history", {timeout:20000}, async t=>{
+  const f=await fixture(t,"review-lost-read"),x=input(f.context);
+  const plan=await f.sa.append(f.context,0,x.knowledge,x.command,"plan"),command=reviewCommand(plan);
+  const ack=await new QuestionDispositionRepository(f.a,f.policy).record(f.context,0,command,"review");let lost=true;
+  const uncertain:Database={close:async()=>{},transaction:async fn=>{
+    const result=await f.a.transaction(fn);if(lost){lost=false;throw Error("Fixture lost review read COMMIT acknowledgement");}return result;
+  }};
+  await assert.rejects(new QuestionDispositionRepository(uncertain,f.policy).load(f.context,plan.record));
+  await f.a.close();const fresh=f.connect("fresh"),value=await new QuestionDispositionRepository(fresh,f.policy).load(f.context,plan.record);
+  assert.deepEqual(value.storage,ack.storage);assert.deepEqual(value.planningStorage,plan.storage);assert.equal(value.effortStorage,null);assert.equal(value.table.history.length,1);
+  await scoped(fresh,f.context,async tx=>{
+    const audits=await tx.audits();assert.ok(verifyAudit(audits));
+    assert.equal(audits.filter(e=>e.type==="factual.question_review.read_checked").length,2);
+    assert.equal((await tx.get(DISPOSITION_KIND,DISPOSITION_KEY))?.revision,1);
+    assert.equal((await tx.get(PLANNING_KIND,PLANNING_KEY))?.revision,1);
+  });
+  await effects(fresh,f.context,"factual.question_review.recorded","factual.question_review.recorded",1);
+});
+
+// Own Factual storage only; Knowledge capture/Context are HOST trusted, not current cross-engine authority.
+for (const mode of ["plan", "expiry"] as const) {
+  test(
+    `correction impact ${mode} waits behind actual public plan writer before observing complete history`,
+    { timeout: 20000 },
+    async (t) => {
+      const f = await fixture(t, "impact-" + mode),
+        x = input(f.context);
+      const plan = await f.sa.append(
+        f.context,
+        0,
+        x.knowledge,
+        x.command,
+        "plan",
+      );
+      const changed = k.reviseKnowledge(f.context, x.knowledge, {
+        id: "claim",
+        expectedRevision: 1,
+        value: x.knowledge.records[0]!.value,
+      });
+      const prior = x.knowledge.records[0]!.ref,
+        next = changed.records.at(-1)!.ref;
+      const locked = gate(),
+        release = gate();
+      const writer = new FactualRepository(
+        held(f.a, locked, release),
+        f.policy,
+      );
+      const writing = writer.append(
+        f.context,
+        1,
+        x.knowledge,
+        { ...x.command, expectedRevision: 1 },
+        "plan2",
+      );
+      const written = writing.then(
+        (value) => ({ value }),
+        (error) => ({ error }),
+      );
+      let pending:
+        | Promise<
+            Awaited<ReturnType<FactualRepository["loadCorrectionImpact"]>>
+          >
+        | undefined;
+      let settled: Promise<unknown> | undefined;
+      try {
+        await Promise.race([locked.promise, writing]);
+        const started = performance.now();
+        pending = f.sb.loadCorrectionImpact(
+          f.context,
+          JSON.stringify(changed),
+          prior,
+          next,
+          undefined,
+          mode === "expiry" ? 1000 : 10000,
+        );
+        const read = pending.then(
+          (value) => ({ value }),
+          (error) => ({ error }),
+        );
+        settled = read;
+        await observedWait(f.id);
+        if (mode === "expiry")
+          await new Promise((r) =>
+            setTimeout(r, Math.max(0, 1100 - (performance.now() - started))),
+          );
+        release.resolve();
+        const committed = await written;
+        assert.ok("value" in committed);
+        const result = await read;
+        if (mode === "expiry") {
+          assert.ok("error" in result);
+          assert.equal(
+            (result.error as { code: string }).code,
+            "impact_unavailable",
+          );
+          await scoped(f.b, f.context, async (tx) =>
+            assert.equal(
+              (await tx.audits()).filter(
+                (a) => a.type === "factual.correction_impact.read_checked",
+              ).length,
+              0,
+            ),
+          );
+        } else {
+          assert.ok("value" in result);
+          assert.deepEqual(
+            result.value.planningStorage,
+            committed.value.storage,
+          );
+          assert.equal(result.value.impact.plans.length, 2);
+          assert.deepEqual(
+            result.value.impact.plans.map((p) => p.plan),
+            [plan.record, committed.value.record],
+          );
+          assert(
+            result.value.impact.plans.every(
+              (p) => p.status === "review-required",
+            ),
+          );
+          for (const row of result.value.impact.plans) {
+            assert.deepEqual(row.affectedRefs, [prior]);
+            assert.deepEqual(row.latestPlan, committed.value.record);
+          }
+        }
+        await f.b.close();
+        const fresh = f.connect("fresh");
+        const snapshot = await new FactualRepository(
+          fresh,
+          f.policy,
+        ).loadCorrectionImpact(f.context, JSON.stringify(changed), prior, next);
+        assert.deepEqual(snapshot.planningStorage, committed.value.storage);
+        assert.equal(snapshot.impact.plans.length, 2);
+        await scoped(fresh, f.context, async (tx) =>
+          assert.ok(verifyAudit(await tx.audits())),
+        );
+        await effects(
+          fresh,
+          f.context,
+          "factual.planning.appended",
+          "factual.planning.revised",
+          2,
+        );
+      } finally {
+        release.resolve();
+        await written;
+        await settled;
+      }
+    },
+  );
+}
+
+test(
+  "correction impact lost actual checked-read COMMIT retains audit and unchanged history in fresh pool",
+  { timeout: 20000 },
+  async (t) => {
+    const f = await fixture(t, "impact-lost-read"),
+      x = input(f.context);
+    const plan = await f.sa.append(
+      f.context,
+      0,
+      x.knowledge,
+      x.command,
+      "plan",
+    );
+    const changed = k.reviseKnowledge(f.context, x.knowledge, {
+      id: "claim",
+      expectedRevision: 1,
+      value: x.knowledge.records[0]!.value,
+    });
+    const prior = x.knowledge.records[0]!.ref,
+      next = changed.records.at(-1)!.ref;
+    const before = await scoped(f.a, f.context, (tx) =>
+      tx.get(PLANNING_KIND, PLANNING_KEY),
+    );
+    let lost = true;
+    const uncertain: Database = {
+      close: async () => {},
+      transaction: async (fn) => {
+        const result = await f.a.transaction(fn);
+        if (lost) {
+          lost = false;
+          throw Error("Lost actual read COMMIT acknowledgement");
+        }
+        return result;
+      },
+    };
+    await assert.rejects(
+      new FactualRepository(uncertain, f.policy).loadCorrectionImpact(
+        f.context,
+        JSON.stringify(changed),
+        prior,
+        next,
+      ),
+    );
+    await f.a.close();
+    const fresh = f.connect("fresh");
+    const result = await new FactualRepository(
+      fresh,
+      f.policy,
+    ).loadCorrectionImpact(f.context, JSON.stringify(changed), prior, next);
+    assert.deepEqual(result.planningStorage, plan.storage);
+    assert.equal(result.impact.plans[0]!.status, "review-required");
+    await effects(fresh, f.context, "factual.planning.appended", "factual.planning.revised", 1);
+    await scoped(fresh, f.context, async (tx) => {
+      assert.deepEqual(await tx.get(PLANNING_KIND, PLANNING_KEY), before);
+      const audits = await tx.audits();
+      assert.ok(verifyAudit(audits));
+      assert.equal(
+        audits.filter(
+          (a) => a.type === "factual.correction_impact.read_checked",
+        ).length,
+        2,
+      );
+      assert.equal(
+        audits.filter((a) => a.type === "factual.planning.appended").length,
+        1,
+      );
+    });
+  },
+);

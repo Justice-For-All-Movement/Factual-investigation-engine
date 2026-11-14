@@ -279,7 +279,17 @@
         2,
         6,
         7,
-        10
+        10,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
       ],
       "implementationStatus": "planned; partial private effort bookkeeping checkpoint; final-head CI/installed review pending; AM-05.06 verification/closure dependencies remain unmet; PR2 15 local/installed tests and source review pass; docs/efforts-verification.json; current-head CI required PR6 partial own-DB effort metadata/history and atomic audit/outbox/ack; actual stored planning selected under owning lock. Tested source checkpoint; installed/source-review/current-head CI pending. No evaluated answers/closure or current Identity/live qualification. PR6 all41 local/installed compiled public-export tests pass, four new restricted-migration groups; repository JS byte-match; initialCI40868588618/check123429526743 success41/headlogs inspected; source review no unresolved finding; docs/effort-repository-verification.json. Final-head CI required; not verification/completeness/closure acceptance. PR7 partial opt-in current stored Identity resource facade guards plan/effort methods including replay; source checkpoint local verification underway; installed/review/current-head CI pending. Host login/upstream consent/rights/production qualification remain pending. PR7 all45 local/installed compiled public-export tests pass, four new actual dual restricted DB groups; identity-repository JS byte-match; initialCI40877315552/check123459348139 success45/headlogs inspected. Source review no unresolved finding; docs/identity-repository-verification.json; final-head CI required. No host proofing/current upstream/consent or production acceptance claim. PR10 owning PostgreSQL qualification:49 local ordinary tests/typecheck/build/registry and strict integration compile pass; seven network scenarios await final-head CI/review. Tests/docs/CI only; runtime/pins/migrations unchanged. Current upstream/consent/rights/evaluated answers/closure and production remain pending. PR10 expanded source ae811a4ca55b86236d738e0ae4e7f544979adf76 CI41788854898 PostgreSQL126437240915 success7/strict compile, head/logs inspected; source review no unresolved finding; docs/postgres-verification.json. Final-head checks required. No full task or production acceptance.",
       "acceptanceCriteria": [
@@ -290,7 +300,57 @@
       "externalDependencies": [],
       "externalPrerequisites": [],
       "prs": [],
-      "origin": "original"
+      "origin": "original",
+      "capturedCoverage": {
+        "docs": "docs/CAPTURED_COVERAGE.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/12",
+        "status": "Accepted PR12 sourced7e0930/mergeddaf10d after exacthead58ordinary+7existingPG17 CI. Six local+packed groups/types/runtime qualified; full task remains partial."
+      },
+      "owningCoverage": {
+        "docs": "docs/OWNING_COVERAGE.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/13",
+        "status": "Accepted PR13 source85a0b0a572021377a1dc4e303ae83104dbdfc412/merge782d414f81301787b1fc1879c9c2afd2a443da8d; all4exactheadchecks/raw64ordinary+7priorPG17PASS. Full64local/sixpacked/types/two-runtime-bytes qualified; partial original task."
+      },
+      "coveragePostgres": {
+        "docs": "docs/POSTGRES_TESTS.md",
+        "status": "Accepted PR14 source2ba6a0791519aa4d8bca313dceada6aa26e63c52/merge77a1683e3f4406f37af2693780006182f73fc51d; all4headchecks/raw64ordinary+11actualPG17PASS0fail0skip. Test/docs only, no local PG/Docker or new runtime/fullworkflow qualification.",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/14"
+      },
+      "coverageHttp": {
+        "docs": "docs/COVERAGE_HTTP.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/15",
+        "status": "Accepted PR15 source9971ff7f9989d2a0b197054e440d6821688ca5ff/merge842803637f148e70b1f3302a16103d5541770772;70ordinary+11existingPG17 final-head CI, full70local and6focusedpacked/declarations/runtime pass. Partial original task."
+      },
+      "questionDispositions": {
+        "docs": "docs/QUESTION_DISPOSITIONS.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/16",
+        "status": "Accepted PR16 sourced59e06ef132e248a71a7c47a7d6f49348827d2c3/merge5ec54aed1d1f659be53d74afd32636829846072b; all4headchecks/raw78ordinary+11existingPG17PASS0fail0skip,full78local/eightpacked/declarations/runtime-byte match qualified. Pure metadata only; full task remains partial."
+      },
+      "dispositionRepository": {
+        "docs": "docs/DISPOSITION_REPOSITORY.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/17",
+        "status": "Accepted PR17 sourcee44e9b8673c88f63f908d1d1723d1e7eb38bb2f5/mergef3d3df4cc6df271de5bf96148f9321ea0788348c; all4headchecks/raw86ordinary+11existingPG17PASS. Eight focused local+packed/declarations/runtime-byte match qualified; partial task."
+      },
+      "dispositionIdentity": {
+        "docs": "docs/DISPOSITION_IDENTITY.md",
+        "status": "Accepted PR18 source189e5c6a834a83a4845131fa122a8544ebc0877e/merge926fb5e8a40c6d38e3f98fca7490f0549768df87; all4finalchecks/raw93ordinary+11existingPG17PASS. Full93local/7packed/declarations/two runtime modules qualified; original task partial.",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/18"
+      },
+      "dispositionReadHttp": {
+        "docs": "docs/DISPOSITION_READ_HTTP.md",
+        "status": "Accepted PR19 source2328b65c0ba69a1ec854cfe9d78295b4b2e11885/mergece2caec292da1664537c2b15f4ea3b3f1f24e568 after all4headchecks/raw100ordinary+11existingPG17PASS. Full100local/sevenpacked/declarations/two modules qualified; original task partial.",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/19"
+      },
+      "dispositionWriteHttp": {
+        "docs": "docs/DISPOSITION_WRITE_HTTP.md",
+        "status": "Accepted PR20 source837ee4de merged934fe7fe after109ordinary+11existingPG17 final-head CI/full109local/9focused local-packed/types/two runtime modules. No full installed/live/workproof/closure claim.",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/20"
+      },
+      "dispositionPostgres": {
+        "docs": "docs/DISPOSITION_POSTGRES.md",
+        "status": "Accepted PR21 source85e3f5e93187684aa5d57d5cc71b81354abfa109 mergea2d84c63b8e96b676e028dabeb0dfa2ab3a2793f after109ordinary+16PG17 final-head CI. Test-only; no Identity-over-TCP/closure/live claim.",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/21"
+      }
     },
     {
       "id": "AM-05-07",
@@ -322,8 +382,14 @@
         "AM-05-06",
         "AM-05-07"
       ],
-      "contributingPrs": [],
-      "implementationStatus": "planned",
+      "contributingPrs": [
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "implementationStatus": "Partial captured plan correction impact only; full original dependencies/findings/draft-output/closure/export and Editorial acceptance remain unmet. Eight focused local and packed public-export groups/types/runtime byte-match pass; final-head CI pending.",
       "acceptanceCriteria": [
         "A corrected date finds all affected claims, findings and draft outputs while leaving unrelated work usable.",
         "Provide the authorized visual or table view, source-bound test evidence and documented failure behavior."
@@ -332,7 +398,32 @@
       "externalDependencies": [],
       "externalPrerequisites": [],
       "prs": [],
-      "origin": "original"
+      "origin": "original",
+      "capturedCorrectionImpact": {
+        "docs": "docs/CAPTURED_CORRECTION_IMPACT.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/22",
+        "status": "Accepted PR22 source13c72d8a18e4e69342676e48b82d2ef71ac946b3 mergeb93b6f8300f003dab4e7e10729a0a562f62f4d28 after117ordinary+16existingPG17 all4headchecks. Eight local-packed/types/runtime-qualified; full task partial."
+      },
+      "owningCorrectionImpact": {
+        "docs": "docs/OWNING_CORRECTION_IMPACT.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/23",
+        "status": "Accepted PR23 sourceea52320cf1f00e55c517c4cc880d9dac2070d72c merge31202089c509f2e3e231d76805924df8e42b90bb after125ordinary+16existingPG17 all4headchecks; full125local/8local-packed/types/runtime qualified; full task partial."
+      },
+      "currentCorrectionImpact": {
+        "docs": "docs/CURRENT_CORRECTION_IMPACT.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/24",
+        "status": "Accepted PR24 source0bcf455ff130c19195e44a9804fb0a2ca4e2647f mergef6b71a6e6de56e896c7c84696184c3560f31fac3 after135ordinary+16existingPG17 all4headchecks/full135local/10local-packed/types/runtime qualified; full task partial, sequential not distributed fence."
+      },
+      "correctionImpactPostgres": {
+        "docs": "docs/CORRECTION_IMPACT_POSTGRES.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/25",
+        "status": "Accepted PR25 source0f0c3a0fc0dabdf131bf0418eb9225cefec784c1 mergeaf03f52fef9789a260fdb138437ffcc0e12bcdff after135ordinary+19PG17 all4headchecks. Test-only; no localPGDocker/currentIdentitySourceConsentTCP/fullworkflow claim."
+      },
+      "correctionImpactHttp": {
+        "docs": "docs/CORRECTION_IMPACT_HTTP.md",
+        "pullRequest": "https://github.com/Justice-For-All-Movement/Factual-investigation-engine/pull/26",
+        "status": "Incomplete;7focusedLOCAL+7PACKED actual3restricted-migration/nativeFetch groups/types/runtime bytes/typecheck/build/registry pass; source review clear; final-head CI pending. No SourceConsent/worktruth/findingsdrafts/full correction-impact/closure/browserATlive claim."
+      }
     },
     {
       "id": "AM-06-01",

@@ -1,0 +1,21 @@
+{
+  "profile": "disposition-repository-verification-v1",
+  "status": "incomplete originalAM05.06; final-head CI pending",
+  "focusedLocalGroups": 8,
+  "packedCompiledPublicExportGroups": 8,
+  "publicDeclarations": "pass",
+  "runtimeByteMatch": [
+    "disposition-repository.js"
+  ],
+  "consumerSetup": "unpacked npm pack plus copied normally prepared dependencies; not fresh install",
+  "sourceReview": "clear bounded owning host-trusted metadata adapter; no currentIdentity/SourceConsent/closure/live qualification",
+  "sha256": {
+    "docs/ARCHITECTURE.md": "20046a5da209f51df74201bd65b17903a9a349d98b4f2a1410ffced0fac2a227",
+    "package.json": "bbb56226af1cc9310b762c74b2f86aa2d5d11d9e2eb6c41ca83d70f942bf1c67",
+    "registry/prs.json": "b6e5841ba1be4f99370a7801cbc0d2d06097f076987d09c4356ed435b36fad12",
+    "docs/DISPOSITION_REPOSITORY.md": "2d0ccabe929484b47bdbc1877f88f17b25419388c8b8389454aa949df6042741",
+    "src/disposition-repository.ts": "49fc5d34f23efaced1f7bd43eb95faf2d84c4f829e1dfe38261c7586583da5cd",
+    "tests/disposition-repository.test.ts": "db38e5ea63f1af260b2e2153fd1d21dd0262f5521091742038ece9a4dbc59563"
+  },
+  "fullLocal": "84pass0fail0skip before two added final groups; no86full-final-local/full-installed claim"
+}

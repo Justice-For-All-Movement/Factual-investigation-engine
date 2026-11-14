@@ -24,6 +24,46 @@
       "types": "./dist/identity-repository.d.ts",
       "default": "./dist/identity-repository.js"
     },
+    "./coverage": {
+      "types": "./dist/coverage.d.ts",
+      "default": "./dist/coverage.js"
+    },
+    "./coverage-http": {
+      "types": "./dist/coverage-http.d.ts",
+      "default": "./dist/coverage-http.js"
+    },
+    "./question-dispositions": {
+      "types": "./dist/question-dispositions.d.ts",
+      "default": "./dist/question-dispositions.js"
+    },
+    "./disposition-repository": {
+      "types": "./dist/disposition-repository.d.ts",
+      "default": "./dist/disposition-repository.js"
+    },
+    "./disposition-identity": {
+      "types": "./dist/disposition-identity.d.ts",
+      "default": "./dist/disposition-identity.js"
+    },
+    "./disposition-read-http": {
+      "types": "./dist/disposition-read-http.d.ts",
+      "default": "./dist/disposition-read-http.js"
+    },
+    "./disposition-write-http": {
+      "types": "./dist/disposition-write-http.d.ts",
+      "default": "./dist/disposition-write-http.js"
+    },
+    "./correction-impact": {
+      "types": "./dist/correction-impact.d.ts",
+      "default": "./dist/correction-impact.js"
+    },
+    "./correction-impact-current": {
+      "types": "./dist/correction-impact-current.d.ts",
+      "default": "./dist/correction-impact-current.js"
+    },
+    "./correction-impact-http": {
+      "types": "./dist/correction-impact-http.d.ts",
+      "default": "./dist/correction-impact-http.js"
+    },
     "./engine": {
       "types": "./dist/engine/index.d.ts",
       "default": "./dist/engine/index.js"

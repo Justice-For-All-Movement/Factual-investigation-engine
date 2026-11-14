@@ -33,3 +33,31 @@ CURRENT_KNOWLEDGE.md documents the explicit accepted Knowledge pin upgrade and a
 POSTGRES_TESTS.md defines opt-in owning Factual session qualification. The source checkpoint passes49 local ordinary tests and strict integration compilation; expanded actual PostgreSQL17 CI passes seven scenarios; source review no unresolved finding; final-head CI remains required. Runtime and pins are unchanged.
 
 The opt-in reviewKnowledge method in CURRENT_KNOWLEDGE.md now composes actual owning planning reads and current-Identity Knowledge for exact dependency review; pure caller-snapshot review remains a separate host-trust path. This partial addition does not satisfy full AM-05.08 or Editorial prerequisites.
+
+CAPTURED_COVERAGE.md documents explicitly incomplete private coverage-table work. Exact-plan effort assertions and historical corrections remain separate; all questions unresolved. Full AM-05.06/shared verification/closure/reopening/correction-impact/Editorial gates remain unmet.
+
+PR12 captured coverage acceptedddaf10d after58ordinary+7existingPG17 CI. OWNING_COVERAGE.md documents incomplete coherent own-DB coverage reads with optional current Identity before/after; no source/work proof or full closure/correction impact qualification. KnowledgePR32 accepted00b743247176e939bf08b40c3a1dd844d722340e after217+13existingPG17 CI; no dependency pin upgrade is implied.
+
+PR13 accepted782d414f after64ordinary+7existingPG17 CI. POSTGRES_TESTS.md records incomplete test-only owning coverage contention/expiry/lost-read-COMMIT qualification; no runtime or full workflow qualification is implied.
+
+PR14 accepted77a1683e3f4406f37af2693780006182f73fc51d after64ordinary+11PG17 final-head CI. COVERAGE_HTTP.md describes incomplete private current-human native Fetch coverage reads; no closure/work-proof/SourceConsent or deployed hosting qualification.
+
+QUESTION_DISPOSITIONS.md describes incomplete pure captured human unanswered-question dispositions and explicit review/reopening metadata. Existing owning/HTTP/Visual coverage remains unchanged. No closure or AM05.08/Editorial gate acceptance. VisualPR28 source5c47e9173142fc994e3da2e7e9b63b8700e22ba5 merged39758bd73c74904f6a7f23975d2a8561a298ab22 after185ordinary final-head CI/full local check; no consumer pin upgrade here.
+
+DISPOSITION_REPOSITORY.md documents incomplete own-DB question review persistence stacked on purePR16; exact actual planning/effort/review storage basis under a checked project lock. Existing coverage profiles unchanged; no current Identity facade, protected route or full closure/correction-impact qualification.
+
+DISPOSITION_IDENTITY.md describes incomplete opt-in actual current stored Identity/resource guards over accepted PR17. No protected route, source/work proof or closure qualification.
+
+Accepted PR18 current Identity facade is qualified at926fb5e after93ordinary+11existingPG17 CI. DISPOSITION_READ_HTTP.md describes incomplete private selected disposition reads; no write/closure/source-workproof/browser/live acceptance.
+
+Accepted PR19 read interface atce2caec after100ordinary+11existingPG17 current-head CI. DISPOSITION_WRITE_HTTP.md describes incomplete protected explicit review writes with immutable exact command replay; no automatic retry or closure/workproof/live acceptance.
+
+DISPOSITION_POSTGRES.md records incomplete test-only owning review session qualification after accepted Factual20. Original task remains partial; no current Identity-over-TCP or workproof/closure/live acceptance implied.
+
+CAPTURED_CORRECTION_IMPACT.md documents partial pure dependency impact across every captured plan edition. Findings/drafts/current permissions remain unloaded; original full AM-05.08/Editorial dependencies remain unmet. Accepted PR21 source85e3f5e93187684aa5d57d5cc71b81354abfa109 merged a2d84c63b8e96b676e028dabeb0dfa2ab3a2793f after109ordinary+16PG17 CI; earlier session-pending notes are historical.
+
+Accepted PR22 captured impact atb93b6f83 after117ordinary+16existingPG17. OWNING_CORRECTION_IMPACT.md documents incomplete host-trusted upstream input plus actual own planning checked-lock read; no current Identity/SourceConsent/full correction impact acceptance.
+
+Accepted PR23 owning impact at31202089 after125ordinary+16existingPG17. CURRENT_CORRECTION_IMPACT.md describes incomplete actual Identity/Knowledge/Factual sequential read composition; source rights/findingsdrafts/closure/Editorial remain pending.
+
+Accepted PR25 owning PostgreSQL impact ataf03f52f after135ordinary+19PG17. CORRECTION_IMPACT_HTTP.md documents incomplete private actual-current-reader/session native Fetch admission; SourceConsent/findingsdrafts/full closure/Editorial/browserATlive remain pending.

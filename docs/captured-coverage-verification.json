@@ -1,0 +1,14 @@
+{
+  "profile": "captured-investigation-coverage-v1",
+  "localEvidence": "Six focused local and six packed public-export groups/declarations/runtime byte match pass. Normal npm ci prepared source; consumer dependencies copied, not fresh install. Full/current-head CI pending.",
+  "review": "Clear bounded pure captured bookkeeping profile; actual existing domains validate histories/original basis. All questions unresolved; no closure/verification authority.",
+  "limits": "No new SQL/TCP/browser/live qualification. Current Identity/Consent/Evidence/Intake and shared E07/E08/full AM05.06/.08/Editorial remain separate.",
+  "sha256": {
+    "src/coverage.ts": "334583cfe32157209e3c9fad56be29201024bf20911f6419d847706f7e97dbbb",
+    "tests/coverage.test.ts": "5e64487d60b84eed26392a55c8bac95fff92daf333fb6e8a30d030adfba58002",
+    "package.json": "3f12ad5fcdb84ce10e1b5a277e3dbfbe5dd7f006d57dcb3b4e20c57b91fe544e",
+    "registry/prs.json": "50b75f65790fa1805b62fabe47d9e0d747f823c2a0db5152a3e8a1e3f9cc846f",
+    "docs/CAPTURED_COVERAGE.md": "c92ac7a17fc766728525ebdb7b6b8a8ac0b8a0feeea50b82e53462c3c9663fdf",
+    "docs/ARCHITECTURE.md": "ead22b8cde15f8312668397329d21f26512fcdf022e8eddda8fdf99d3cffc8d0"
+  }
+}

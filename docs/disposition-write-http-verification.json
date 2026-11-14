@@ -1,0 +1,20 @@
+{
+  "status": "incomplete;full/current-head CI pending",
+  "focusedLocal": 9,
+  "packedCompiledGroups": 9,
+  "publicDeclarations": "pass",
+  "runtimeByteMatch": [
+    "disposition-write-http.js",
+    "disposition-identity.js"
+  ],
+  "consumerSetup": "unpacked pack plus copied normal-prepared deps, not fresh install",
+  "sha256": {
+    "docs/ARCHITECTURE.md": "75dec08a666a1c8b96aada66c2e2321ed223619d4f5191a76ad16999642aa337",
+    "package.json": "8c1efe09386291d38ce6379004e831966e9ed602784e027b15ddc3367c92e688",
+    "registry/prs.json": "d82e6ec4b776513ae334e1d2d3c8b2b1459b3a4e2693057989334a0957a98d30",
+    "src/disposition-identity.ts": "a3e34d220c78f94083172cdc0d13bafa5c8f6b5398a9b57e5763eea4fea0da9d",
+    "docs/DISPOSITION_WRITE_HTTP.md": "a5a7cb72c1be5d173983a53d84f4e77840edc57588bf4eaa32aafa6292ae00af",
+    "src/disposition-write-http.ts": "ff4f58f43cb0dde5a0bdb042cac2be993e779e1762a9ec7709cfff9150a3cfb8",
+    "tests/disposition-write-http.test.ts": "e46cda2ccbca4e69cc665d5727ffeb4115f6ffd4f52a33713ead1326f09085d5"
+  }
+}

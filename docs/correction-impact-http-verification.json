@@ -1,0 +1,18 @@
+{
+  "profile": "actual-guarded-reader-private-Fetch",
+  "focusedLocal": 7,
+  "packedPublicExport": 7,
+  "strictDeclarations": "passed",
+  "runtimeBytes": "correction-impact-http.js matched",
+  "consumer": "copied/hard-linked prepared deps, not fresh dependency install",
+  "sourceReview": "clear; exact paths/ref pair/body before fresh auth; constant-time CSRF/Origin/Metadata; one monotonic/cancellable outer admission reaches owning locks; private byte bounds and sanitized unknown read/no fallback/no effects",
+  "finalHeadCI": "pending",
+  "sha256": {
+    "src/correction-impact-http.ts": "15de7b1471cdbcf02df88dfc0703f415e709db311b6217057e0f56846fd6153b",
+    "tests/correction-impact-http.test.ts": "1a38da636210675577513f92d81c483dcc2c65aeac2b1347be99f653a3867e00",
+    "tests/correction-impact-http-fixture.ts": "b151ea4f424978ace731d95be8083b8a34b32baf2e49dad0f4edb21aa7f7c10a",
+    "package.json": "7db3bb0ac211adb3e9affe8ff628ab011211eee897a92ae58d390071e32275f3",
+    "docs/CORRECTION_IMPACT_HTTP.md": "b4f8401e6cc89b5daf541a22b9ef12fb392ff6f0c57074f26ac94421148c9e90",
+    "docs/ARCHITECTURE.md": "1d04dc02f0c67b2cc3533e92edbe58778c568e36080c2e9adf063b5b5d8825bd"
+  }
+}

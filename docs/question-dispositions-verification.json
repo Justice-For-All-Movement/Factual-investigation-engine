@@ -1,0 +1,21 @@
+{
+  "profile": "question-dispositions-verification-v1",
+  "status": "incomplete original AM05.06; source/pure profile qualified, current-head CI pending",
+  "localFocused": 8,
+  "packedPublicExportGroups": 8,
+  "packedDependencySetup": "unpacked npm pack plus copied normal-prepared dependencies, not fresh install",
+  "publicDeclarations": "pass",
+  "runtimeByteMatch": [
+    "question-dispositions.js"
+  ],
+  "sourceReview": "clear bounded metadata-only profile; full closure/current auth/durable and live qualifications unmet",
+  "sha256": {
+    "docs/ARCHITECTURE.md": "30d67449b8b523444505a771f39ab9d02b375434cf4e28deb1f14ff72f6667f9",
+    "package.json": "94692bfc7ab2c9a041884a87458b79fc7712d39b1e767b8738c4a92eb04aed5f",
+    "registry/prs.json": "5ed172d32247e0489394e94f4d58cd2873f97e73349b72aa904a66b66a347512",
+    "docs/QUESTION_DISPOSITIONS.md": "c17e25c920ab1fdd1e15b1ef65eb6c34a5dbcbd71da79700684ad069557e70ce",
+    "src/question-dispositions.ts": "ed8478bb2bcd3cd7a9f1d464dac9a1ac8c721079fa01f3dc3225607fb2002303",
+    "tests/disposition-fixture.ts": "65e9ab8b8c63ac83a3189f84a9f0fdcde68b6596926a7c02e99d320a22e28a77",
+    "tests/question-dispositions.test.ts": "faf4b59f9b3176c3947070c7d286b22e5ffd626e5eeeff5c8f75a249d6137953"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "status": "incomplete; full/current-head CI pending",
+  "focusedLocal": 7,
+  "packedCompiledGroups": 7,
+  "publicDeclarations": "pass",
+  "runtimeByteMatch": [
+    "disposition-read-http.js",
+    "disposition-identity.js"
+  ],
+  "sha256": {
+    "docs/ARCHITECTURE.md": "fce73f2c7e6825200d358866da5ea9d0d6fa46066060a2347529f4669d719b5c",
+    "package.json": "6a81e490905b589fb3140c3e2abcebe47d1281134f3f5b79de5d739188b31468",
+    "registry/prs.json": "5b6db8b3680ad8a601850bbfff16e13f35f621fc69ddf691465eda0732514075",
+    "src/disposition-identity.ts": "75b7209d68c4ff92c2f28b477a4ccd5e65774ab099c109a2e9468cf29c53cac9",
+    "docs/DISPOSITION_READ_HTTP.md": "182cc8ccf4f9913c8dac0f8617e1188aa5114420c350d100b962236b7b39cd75",
+    "src/disposition-read-http.ts": "9d9e568b5f9c35dfc233d91d5d6fb362c3f4f899dcc8843cab03ae8e2a597139",
+    "tests/disposition-read-http.test.ts": "a4d61bc077573999a1d0778855ece256104cfa857952ab86e779d2ee566c7398"
+  }
+}

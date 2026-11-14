@@ -1,0 +1,17 @@
+{
+  "profile": "captured-only",
+  "focusedLocal": 8,
+  "packedPublicExport": 8,
+  "declarations": "passed",
+  "runtimeByteEquality": "passed",
+  "consumer": "copied/hard-linked prepared dependencies, not fresh install",
+  "sourceReview": "clear; bounded whole capture, exact references/ancestry, missing graphs indeterminate, no effects or invented authority",
+  "fullFinalHeadCI": "pending",
+  "sha256": {
+    "src/correction-impact.ts": "1b1eb66cee9cb845d84986985c112ed35eb3858da0033281616c5fd3645851d7",
+    "tests/correction-impact.test.ts": "df062aa3f638031ce421984f6afc86ea521ceba8f9fd4382313fe647cb96bc62",
+    "package.json": "2dc81783f1dd44e9c568706f79022d436659d3e5551f79389886ce3c5f684267",
+    "docs/CAPTURED_CORRECTION_IMPACT.md": "b60ac02cf1714cf00ad0a624fdf52c98cdcfdbecab4b6dfac48516a06b4e6370",
+    "docs/ARCHITECTURE.md": "893dc04f8c4a7f80791993f5a595b855bcb2ebc5309dd49278127b6bfac76bac"
+  }
+}
