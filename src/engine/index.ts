@@ -18,12 +18,16 @@ import type { ContradictionData, FindingData, HypothesisData, InvestigationData,
 import { assemblePackage, closureCheck, effortReport, renderHtml, renderMarkdown } from './package.ts';
 import type { ChronologyResult, ClosureCheck, EffortReport, EvidenceIndexEntry, Loaded } from './package.ts';
 import type { ContactLead, DiscoveryItem, InvestigationPorts, PortEffort } from './ports.ts';
+import { buildViews, renderViewsHtml } from './views.ts';
+import type { InvestigationViews } from './views.ts';
 
 export { SCHEMA, migrations } from './store.ts';
 export type { Attempt, AttemptInput, Rec, SourceLink, StaleReason } from './store.ts';
 export type * from './model.ts';
 export type * from './ports.ts';
 export type { ClosureCheck, EffortReport, LaneEffort } from './package.ts';
+export { VIEW_NAMES, renderViewsHtml } from './views.ts';
+export type { InvestigationViews, QuestionNode, ViewName } from './views.ts';
 
 const S = SCHEMA;
 export const manifest: EngineManifestV1 = {
@@ -290,6 +294,9 @@ export function createEngine(deps: EngineDeps) {
     let result: ActionResult | undefined;
     let reservation: string | undefined;
     const cost = config.stepCosts?.[step.data.action];
+    // A re-run reconciling an uncertain run repeats the same idempotent port call (same key), so the charge committed for
+    // that run already covers it: no second reservation is made.
+    const priorCharge = cost !== undefined ? step.data.uncertainCharge ?? null : null;
     try {
       requireCapability(ctx, 'investigation:execute');
       if (spec?.port === 'correspondence') requireCapability(ctx, 'investigation:contact');
@@ -297,7 +304,7 @@ export function createEngine(deps: EngineDeps) {
         const decision = await ports.authorization.authorize(ctx, { capability: spec?.port === 'correspondence' ? 'investigation:contact' : 'investigation:execute', resource: stepRef });
         if (!decision.allowed) throw new DomainError('forbidden', `Authorization denied: ${decision.reason}`);
       }
-      if (cost !== undefined) {
+      if (cost !== undefined && priorCharge === null) {
         if (ports.budget === undefined) throw new DomainError('budget_exhausted', 'This action has a declared cost and no BudgetPort is configured to reserve it');
         reservation = (await ports.budget.reserve(ctx, { category: cost.category, amount: cost.amount, unit: cost.unit, subject: stepRef, idempotencyKey: `${step.id}:${step.data.runCount}` })).reservationId;
       }
@@ -309,15 +316,21 @@ export function createEngine(deps: EngineDeps) {
     }
     const r = result;
     let spent = 0;
+    let charge: StepData['uncertainCharge'] = priorCharge !== null && r.outcome === 'uncertain' ? priorCharge : null;
     if (reservation !== undefined && ports.budget !== undefined) {
-      if (['succeeded', 'partial', 'zero_result', 'uncertain'].includes(r.outcome)) { await ports.budget.commit(ctx, reservation, { amount: (cost as { amount: number }).amount, detail: { step: stepRef, outcome: r.outcome } }); spent = (cost as { amount: number }).amount; }
-      else await ports.budget.release(ctx, reservation, `step outcome ${r.outcome}`);
+      if (['succeeded', 'partial', 'zero_result', 'uncertain'].includes(r.outcome)) {
+        await ports.budget.commit(ctx, reservation, { amount: (cost as { amount: number }).amount, detail: { step: stepRef, outcome: r.outcome } }); spent = (cost as { amount: number }).amount;
+        if (r.outcome === 'uncertain') charge = { reservationId: reservation, amount: spent, run: step.data.runCount };
+      } else await ports.budget.release(ctx, reservation, `step outcome ${r.outcome}`);
     }
+    const chargeNote = priorCharge === null ? '' : r.outcome === 'uncertain' ? ` Budget: still covered by the charge committed for run ${priorCharge.run}.`
+      : ['succeeded', 'partial', 'zero_result'].includes(r.outcome) ? ` Budget: reconciled against the charge committed for run ${priorCharge.run}; not charged again.`
+      : ` Budget: the charge committed for uncertain run ${priorCharge.run} (reservation ${priorCharge.reservationId}) was not incurred by this outcome and must be corrected in the budget engine; this engine cannot refund a committed charge.`;
     return sql.tx(async (tx) => {
       const [cur, i] = await child<StepData>(tx, ctx, 'step', step.id, 'lock');
       if (cur.data.jobId !== job.id || !['running', 'cancelled', 'queued'].includes(cur.state)) return { skipped: true };
       const base = { questionId: cur.data.questionId, hypothesisId: cur.data.hypothesisId, leadId: cur.data.leadId, planItemId: cur.data.planItemId, stepId: cur.id, lane: cur.data.lane };
-      const attempt = await logAttempt(tx, ctx, i, { ...base, kind: spec?.kind ?? 'other', target: r.target, method: cur.data.action, outcome: r.outcome, detail: cur.state === 'cancelled' ? `${r.detail} (completed after the step was cancelled)` : r.detail, refs: [...new Set(r.refs)].slice(0, 500), effort: { timeMinutes: r.effort?.timeMinutes ?? 0, attempts: 1, costUnits: (r.effort?.costUnits ?? 0) + spent } });
+      const attempt = await logAttempt(tx, ctx, i, { ...base, kind: spec?.kind ?? 'other', target: r.target, method: cur.data.action, outcome: r.outcome, detail: `${cur.state === 'cancelled' ? `${r.detail} (completed after the step was cancelled)` : r.detail}${chargeNote}`, refs: [...new Set(r.refs)].slice(0, 500), effort: { timeMinutes: r.effort?.timeMinutes ?? 0, attempts: 1, costUnits: (r.effort?.costUnits ?? 0) + spent } });
       for (const x of r.extra ?? []) await logAttempt(tx, ctx, i, { ...base, ...x, effort: { attempts: 0 } });
       const existing = (await listRecs<LeadData>(tx, ctx, 'lead', i.id)).flatMap((l) => l.data.linkedRefs);
       const fresh = [...(r.items ?? []).map((it) => ({ kind: 'documentary' as const, description: it.title, refs: [it.ref, ...(it.evidenceRef === undefined ? [] : [it.evidenceRef])] })), ...(r.contacts ?? []).map((c) => ({ kind: 'person' as const, description: c.role === undefined ? c.label : `${c.label} (${c.role})`, refs: [c.ref] }))]
@@ -333,7 +346,7 @@ export function createEngine(deps: EngineDeps) {
         const ps = state === 'done' ? 'done' : state === 'failed' ? 'failed' : state === 'waiting' ? 'running' : 'planned';
         if (['planned', 'running'].includes(p.state) && p.state !== ps) await updateRec(tx, ctx, p, { state: ps, data: { ...p.data, statusNote: `${cur.data.action}: ${r.outcome}` } }, `step ${r.outcome}`);
       }
-      await updateRec(tx, ctx, cur, { state, data: { ...cur.data, lastOutcome: r.outcome, lastAttemptId: attempt.id, result: r.result, refs: [...new Set(r.refs)].slice(0, 500) } }, `step ${r.outcome}`);
+      await updateRec(tx, ctx, cur, { state, data: { ...cur.data, lastOutcome: r.outcome, lastAttemptId: attempt.id, result: r.result, refs: [...new Set(r.refs)].slice(0, 500), uncertainCharge: charge } }, `step ${r.outcome}`);
       await emit(tx, ctx, 'investigation.step_completed', stepRef, { investigationId: i.id, action: cur.data.action, outcome: r.outcome, state, attemptId: attempt.id });
       return { stepId: cur.id, state, outcome: r.outcome, attemptId: attempt.id, refs: [...new Set(r.refs)].slice(0, 100) };
     });
@@ -471,6 +484,12 @@ export function createEngine(deps: EngineDeps) {
       requireCapability(ctx, 'investigation:read');
       const s = await load(sql, ctx, id);
       return { ...s, closure: closureCheck(s), effort: effortReport(s.investigation, s.attempts), changeSeq: await changeSeq(sql, ctx, id), packages: await packagesOf(sql, ctx, id) };
+    },
+    /** Question tree, hypothesis matrix, lead board, interview schedule, coverage and missing-evidence map, findings timeline. Read only. */
+    async getViews(ctx: ServiceContext, id: string): Promise<InvestigationViews> {
+      requireCapability(ctx, 'investigation:read');
+      const s = await load(sql, ctx, id);
+      return buildViews(s, { closure: closureCheck(s), effort: effortReport(s.investigation, s.attempts), generatedAt: ctx.now });
     },
     async get<T = Record<string, unknown>>(ctx: ServiceContext, kind: Kind, id: string): Promise<Rec<T>> { requireCapability(ctx, 'investigation:read'); oneOf(kind, KINDS, 'kind'); return (await child<T>(sql, ctx, kind, id))[0]; },
     async list<T = Record<string, unknown>>(ctx: ServiceContext, investigationId: string, kind: Kind): Promise<Rec<T>[]> { requireCapability(ctx, 'investigation:read'); oneOf(kind, KINDS, 'kind'); await inv(sql, ctx, investigationId); return listRecs<T>(sql, ctx, kind, investigationId); },
@@ -946,6 +965,35 @@ export function createEngine(deps: EngineDeps) {
       return { ...pkgSummary(r, await changeSeq(sql, ctx, investigationId)), content: blocked ? null : r.content as Record<string, Json>, markdown: blocked ? null : r.markdown as string, html: blocked ? null : r.html as string };
     },
     async listPackages(ctx: ServiceContext, investigationId: string): Promise<PackageSummary[]> { requireCapability(ctx, 'investigation:read'); await inv(sql, ctx, investigationId); return packagesOf(sql, ctx, investigationId); },
+    /**
+     * Restores object-store copies of package versions that are missing (a build interrupted after its database commit but
+     * before the copy). Copies are written from the immutable stored version and checked against its digest; nothing in the
+     * database changes except one audit entry per restored version. Blocked versions are not copied.
+     */
+    async syncPackageCopies(ctx: ServiceContext, investigationId: string): Promise<{ checked: number; restored: string[]; skippedBlocked: number[] }> {
+      requireCapability(ctx, 'investigation:write'); await inv(sql, ctx, investigationId);
+      if (deps.objects === undefined) throw new DomainError('unavailable', 'No object store is configured in this deployment');
+      const objects = deps.objects;
+      const rows = await sql.query(`select version, digest, blocked, content, markdown, html from ${S}.packages where tenant_id=$1 and project_id=$2 and investigation_id=$3 order by version`, [...scope(ctx), investigationId]);
+      const restored: string[] = [], skippedBlocked: number[] = [];
+      const enc = new TextEncoder();
+      for (const r of rows) {
+        const v = r.version as number;
+        if (r.blocked as boolean) { skippedBlocked.push(v); continue; }
+        const content = r.content as Record<string, Json>;
+        invariant(content.digest === r.digest, 'integrity_error', `Stored package v${v} does not match its digest`);
+        const base = `${ctx.tenantId}/${ctx.projectId}/investigation/${investigationId}/package-v${v}`;
+        const wanted: [string, string][] = [[`${base}.json`, JSON.stringify(content)], [`${base}.md`, r.markdown as string], [`${base}.html`, r.html as string]];
+        const mine: string[] = [];
+        for (const [k, text] of wanted) if (await objects.head(k) === null) { await objects.put(k, enc.encode(text)); mine.push(k); }
+        if (mine.length > 0) {
+          restored.push(...mine);
+          const ref = uref(EID, 'investigation_package', investigationId, v);
+          await sql.tx(async (tx) => { await appendAudit(tx, S, ctx, 'package.copies_restored', ref, { version: v, keys: mine }); });
+        }
+      }
+      return { checked: rows.length, restored, skippedBlocked };
+    },
 
     // ───────────── standard surface ─────────────
     async inspect(ctx: ServiceContext, ref: string): Promise<Inspection | null> {
@@ -1111,6 +1159,10 @@ export function routes(engine: InvestigationEngine): Route[] {
     get('/v1/investigations/:id', (id, ctx) => engine.getInvestigation(ctx, id)),
     patch('/v1/investigations/:id', (id, body, ctx) => engine.updateInvestigation(ctx, id, body)),
     get('/v1/investigations/:id/overview', (id, ctx) => engine.getOverview(ctx, id)),
+    get('/v1/investigations/:id/views', async (id, ctx, q) => {
+      const v = await engine.getViews(ctx, id);
+      return q.get('format') === 'html' ? { __raw: renderViewsHtml(v), __type: 'text/html; charset=utf-8' } : v;
+    }),
     get('/v1/investigations/:id/records/:kind', (id, ctx, _q, p) => engine.list(ctx, id, p.kind as Kind)),
     get('/v1/records/:kind/:id', (id, ctx, _q, p) => engine.get(ctx, p.kind as Kind, id)),
     get('/v1/records/:kind/:id/revisions', (id, ctx, _q, p) => engine.revisions(ctx, p.kind as Kind, id)),
@@ -1154,6 +1206,7 @@ export function routes(engine: InvestigationEngine): Route[] {
     post('/v1/investigations/:id/reopen', (id, body, ctx) => engine.reopen(ctx, id, body)),
     post('/v1/investigations/:id/packages', (id, body, ctx) => engine.buildPackage(ctx, id, body), 201),
     get('/v1/investigations/:id/packages', (id, ctx) => engine.listPackages(ctx, id)),
+    post('/v1/investigations/:id/packages/sync-copies', (id, _b, ctx) => engine.syncPackageCopies(ctx, id)),
     get('/v1/investigations/:id/packages/:version', async (id, ctx, q, p) => {
       const pk = await engine.getPackage(ctx, id, p.version === 'latest' ? undefined : Number(p.version));
       const format = q.get('format');
@@ -1162,5 +1215,6 @@ export function routes(engine: InvestigationEngine): Route[] {
       return { __raw: format === 'html' ? pk.html : pk.markdown, __type: format === 'html' ? 'text/html; charset=utf-8' : 'text/markdown; charset=utf-8' };
     }),
   ];
-  return all.map((route): Route => route.path !== '/v1/investigations/:id/packages/:version' ? route : { ...route, handler: async (r) => { const out = await route.handler(r) as { __raw?: string; __type?: string } | Json; return out !== null && typeof out === 'object' && !Array.isArray(out) && typeof (out as { __raw?: unknown }).__raw === 'string' ? { text: (out as { __raw: string }).__raw, headers: { 'content-type': (out as { __type: string }).__type, 'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'" } } : out as Json; } });
+  const raw = new Set(['/v1/investigations/:id/packages/:version', '/v1/investigations/:id/views']);
+  return all.map((route): Route => !raw.has(route.path) ? route : { ...route, handler: async (r) => { const out = await route.handler(r) as { __raw?: string; __type?: string } | Json; return out !== null && typeof out === 'object' && !Array.isArray(out) && typeof (out as { __raw?: unknown }).__raw === 'string' ? { text: (out as { __raw: string }).__raw, headers: { 'content-type': (out as { __type: string }).__type, 'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'" } } : out as Json; } });
 }

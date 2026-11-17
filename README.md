@@ -11,5 +11,9 @@ The engine runs as a service (schema `e08_investigation`): investigations opened
 - Use: `import { createEngine, migrate, routes } from '@accountability/factual-investigation/engine'`.
 - Run: `DATABASE_URL=postgresql://… IDENTITY_PUBLIC_KEYS='{"kid":"<PEM>"}' PORT=8108 npm run serve` (standalone: no collaborator ports; port-backed steps report `unavailable`).
 - Test: `TEST_DATABASE_URL=postgresql://user:pass@127.0.0.1:5432/postgres npm run check` (engine tests create and drop their own databases; they are skipped visibly when the variable is unset).
+- Views: `GET /v1/investigations/:id/views[?format=html]` — question tree, hypothesis matrix, lead board, interview schedule, coverage and missing-evidence map, findings timeline.
+- Live check of a deployment (opt-in, skips without configuration): `E08_LIVE_BASE_URL=… E08_LIVE_TOKEN=… npm run live:verify`, or the manual "Live verification (opt-in)" workflow.
+
+Status: the service layer is complete against its plan and locally/CI tested; live-provider and hosted-deployment verification are complete pending owner credentials. See the Status section and owner steps in [docs/ENGINE_API.md](docs/ENGINE_API.md).
 
 The earlier planning/effort library described above is retained and still exported.

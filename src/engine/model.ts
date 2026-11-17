@@ -227,5 +227,7 @@ export type StepData = Readonly<{
   key: string; action: string; executable: boolean; title: string; rationale: string; derivedFrom: string; priority: number;
   questionId: string | null; hypothesisId: string | null; leadId: string | null; planItemId: string | null; findingId: string | null;
   lane: string | null; params: Json; runCount: number; jobId: string | null; lastOutcome: string | null; lastAttemptId: string | null; result: Json; refs: readonly string[];
+  /** Budget charge committed for a run whose outcome was uncertain; a reconciling re-run reuses it instead of charging again. */
+  uncertainCharge?: Readonly<{ reservationId: string; amount: number; run: number }> | null;
 }>;
 export { refOf };
