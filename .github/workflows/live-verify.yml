@@ -1,0 +1,26 @@
+name: Live verification (opt-in)
+# Manual only. Checks a deployed E08 service with scripts/live-verify.mjs. Skips visibly when the repository secrets
+# E08_LIVE_BASE_URL and E08_LIVE_TOKEN are not configured. The write probe runs only when chosen at dispatch.
+on:
+  workflow_dispatch:
+    inputs:
+      write_probe:
+        description: 'Also open one fictional probe investigation and build a package (E08_LIVE_WRITE=1)'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  live-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/live-verify.mjs
+        env:
+          E08_LIVE_BASE_URL: ${{ secrets.E08_LIVE_BASE_URL }}
+          E08_LIVE_TOKEN: ${{ secrets.E08_LIVE_TOKEN }}
+          E08_LIVE_WRITE: ${{ inputs.write_probe && '1' || '0' }}

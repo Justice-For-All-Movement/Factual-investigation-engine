@@ -629,5 +629,52 @@
   "scopeNote": "Original E08 task IDs/dependencies; count is requirement units, not accepted PRs. Full15-engine/122-task approved design preserved byte-for-byte. Pure planning is only partial AM-05.03.",
   "roadmapVersion": 1,
   "observedAt": "2026-11-01T20:45:00Z",
-  "pullRequests": []
+  "pullRequests": [],
+  "serviceCompletion": {
+    "status": "complete pending owner credentials",
+    "note": "Unit records above are kept unedited as history (AGENTS.md). This entry records the E08 service-layer completion under the PAM engine service convention, which supersedes the per-unit PR sequence.",
+    "implemented": "src/engine service layer, all routes/events/capabilities in docs/ENGINE_API.md, including views (question tree, hypothesis matrix, lead board, interview schedule, coverage and missing-evidence map, findings timeline), interview plans, referral recommendations, package copy restoration and uncertain-step budget reconciliation.",
+    "locallyAndCiTested": "tests/engine*.test.ts on real PostgreSQL 16 (CI service postgres:16) plus the earlier library tests and the PostgreSQL 17 contention suite.",
+    "integrationTested": "By the integrator PAM (Public-Accountability-Machine src/app/compose.ts and adapters.ts), outside this repository.",
+    "completePendingOwnerCredentials": [
+      "verified against a real configured provider",
+      "deployed and checked in a hosted environment"
+    ],
+    "ownerProvides": [
+      "E08_LIVE_BASE_URL",
+      "E08_LIVE_TOKEN",
+      "DATABASE_URL",
+      "IDENTITY_PUBLIC_KEYS or IDENTITY_JWKS_FILE",
+      "IDENTITY_ISSUER (optional)"
+    ],
+    "liveVerification": "scripts/live-verify.mjs (npm run live:verify) and .github/workflows/live-verify.yml (manual); skip visibly without configuration.",
+    "unitShares": {
+      "AM-03-01": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-03-02": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-03-03": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-03-04": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-03-05": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-03-06": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-03-07": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-03-08": "E08 share: an investigation opens from a case or objective reference without declaring the report true (originalAccount labelled allegation/attributed_testimony); deadlines, participant views and referral dispatch belong to the lead engine E02/E03. Referral recommendations are never dispatched by E08.",
+      "AM-05-01": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-05-02": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-05-03": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-05-04": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-05-05": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-05-06": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-05-07": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-05-08": "E08 share implemented in the service layer: question tree, competing explanations with contrary tests, findings with verification checklist and distinct review, contradiction/unknown registers, closure guard, packages and referral recommendations, upstream stale/blocked propagation, views. Claim/entity modelling is the lead engine E07's.",
+      "AM-06-01": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-02": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-03": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-04": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-05": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-06": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-07": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-08": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-09": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace).",
+      "AM-06-10": "E08 share: outreach is planned (contact plans, inquiry drafts, interview plans, investigation.outreach_required) through CorrespondencePort and never sent by E08; mailbox, providers and delivery belong to the lead engine E03 (and E14 for the workspace)."
+    }
+  }
 }

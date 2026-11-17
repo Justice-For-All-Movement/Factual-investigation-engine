@@ -17,3 +17,4 @@ The engine is being completed as a service under the PAM engine service conventi
 - The service layer must not import another engine's package: use ports and universal references.
 - Tests: tests/engine.test.ts on real PostgreSQL (TEST_DATABASE_URL). Port implementations in tests/engine-support.ts are test doubles for other engines only.
 - npm run check must stay green, including the earlier library tests.
+- Status: service layer complete; feature/pam-completion has been merged into main and later work lands through pull requests to main. Live-provider and hosted verification are complete pending owner credentials (docs/ENGINE_API.md, Status and owner steps; registry/prs.json `serviceCompletion`).

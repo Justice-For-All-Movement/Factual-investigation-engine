@@ -87,7 +87,8 @@
     "build": "tsc -p tsconfig.build.json",
     "prepare": "npm run build",
     "test:postgres": "npm run typecheck && node --test integration/postgres-factual.test.ts",
-    "serve": "node src/engine/serve.ts"
+    "serve": "node src/engine/serve.ts",
+    "live:verify": "node scripts/live-verify.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.12",

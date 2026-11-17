@@ -83,6 +83,7 @@ getInvestigation(ctx, id): Promise<Rec<InvestigationData>>
 listInvestigations(ctx, { state?, originRef?, limit? }?): Promise<Rec<InvestigationData>[]>
 updateInvestigation(ctx, id, { title?, scopeStatement?, lanes?, policy?, urgency?, contactConstraints?, expectedRevision? }): Promise<Rec<InvestigationData>>
 getOverview(ctx, id): Promise<InvestigationOverview>   // all records, attempts, closure check, effort report, packages
+getViews(ctx, id): Promise<InvestigationViews>         // read; question tree, hypothesis matrix, lead board, interview schedule, coverage map, findings timeline
 get<T>(ctx, kind, id): Promise<Rec<T>>
 list<T>(ctx, investigationId, kind): Promise<Rec<T>[]>
 revisions(ctx, kind, id): Promise<{ revision, state, data, actorId, at, summary }[]>
@@ -135,6 +136,7 @@ reopen(ctx, investigationId, { reason, newInformationRefs? }): Promise<Rec<Inves
 buildPackage(ctx, investigationId, { idempotencyKey? }?): Promise<InvestigationPackage>
 getPackage(ctx, investigationId, version?): Promise<InvestigationPackage>    // latest when omitted
 listPackages(ctx, investigationId): Promise<PackageSummary[]>
+syncPackageCopies(ctx, investigationId): Promise<{ checked, restored[], skippedBlocked[] }>   // write; restores missing object-store copies
 
 inspect(ctx, ref) · search(ctx, { q, limit? }) · audit(ctx, opts?) · events(ctx, opts?) · applyUpstreamChange(ctx, change) · health()
 ```
@@ -227,6 +229,7 @@ Standard: `GET /healthz`, `GET /v1/manifest`, `GET /v1/inspect?ref=`, `GET /v1/s
 | Route | Method |
 |---|---|
 | `POST /v1/investigations` · `GET /v1/investigations` · `GET|PATCH /v1/investigations/:id` · `GET /v1/investigations/:id/overview` | open / list / get / update / overview |
+| `GET /v1/investigations/:id/views` (`?format=html` for escaped, script-free HTML served with a restrictive CSP) | views |
 | `GET /v1/investigations/:id/records/:kind` · `GET /v1/records/:kind/:id` · `GET /v1/records/:kind/:id/revisions` | list / get / revisions |
 | `POST /v1/investigations/:id/questions` · `PATCH /v1/questions/:id` · `POST /v1/questions/:id/disposition` · `POST /v1/questions/:id/answers` | question tree |
 | `POST /v1/questions/:id/hypotheses` · `PATCH /v1/hypotheses/:id` | explanations |
@@ -238,7 +241,7 @@ Standard: `GET /healthz`, `GET /v1/manifest`, `GET /v1/inspect?ref=`, `GET /v1/s
 | `POST /v1/investigations/:id/interviews` · `POST /v1/interviews/:id` · `POST /v1/investigations/:id/referrals` · `POST /v1/referrals/:id/decision` | interview plans, referral recommendations |
 | `POST /v1/investigations/:id/plan` · `POST /v1/steps/:id/execute` (202) · `POST /v1/steps/:id/complete` · `GET /v1/jobs/:id` · `POST /v1/jobs/:id/:action` | planning, execution |
 | `GET /v1/investigations/:id/closure-check` · `POST /v1/investigations/:id/review|close|reopen` | closure |
-| `POST|GET /v1/investigations/:id/packages` · `GET /v1/investigations/:id/packages/:version` (`latest` allowed; `?format=markdown|html`) | packages |
+| `POST|GET /v1/investigations/:id/packages` · `GET /v1/investigations/:id/packages/:version` (`latest` allowed; `?format=markdown|html`) · `POST /v1/investigations/:id/packages/sync-copies` | packages |
 
 ## Events (outbox; subject → payload)
 
@@ -268,26 +271,83 @@ plus optional `describeProvenance(ctx, ref) → { origin, custodySummary, custod
 `getSourceFamilies`, `getGaps`, `getChronology`, `getGraph`, `getImpact`. `CorrespondencePort` (E03): `createContactPlan`,
 `draftInquiry`, `getThreadState`. Kit `BudgetPort`, `AuthorizationPort`. All ports are optional; absence is reported, not hidden.
 
+## Views
+
+`getViews` (capability `investigation:read`; JSON schema `investigation-views/v1`) derives, from stored records only and
+without writing anything, the catalog's visual set: **question tree** (nested by `parentId`, material first, status,
+answer and label, rationale, stale/blocked); **hypothesis matrix** (each explanation with predicted observations
+yes/no/untested, supporting and contradicting source counts, contrary test, plan items, attempts and whether it has been
+tested at all); **lead board** (columns `new` … `converted`, by priority); **interview schedule** (by planned time,
+unscheduled last; interviewee by description or pseudonym, whether consent is recorded but not the consent reference);
+**coverage and missing-evidence map** (per question: plan items by state, attempts by outcome, not-obtained count, open
+unknowns; plus a missing-evidence list: untried open material questions, targets whose latest attempt was not obtained,
+open unknowns and untested open explanations; and effort by lane); **findings timeline** (opened, drafted, approved,
+renewed, returned, withdrawn, stale/blocked, closed, reopened, in time order); and the closure check. The HTML rendering
+is escaped and script-free and served with `default-src 'none'`.
+
+## Package copies
+
+A package build that was interrupted after its database commit but before the object-store copy leaves the version
+without a copy. `syncPackageCopies` (capability `investigation:write`) writes any missing `.json`/`.md`/`.html` copy from
+the immutable stored version after checking its digest, records one audit entry `package.copies_restored` per version,
+never copies a blocked version, and answers `unavailable` when no object store is configured. It is idempotent.
+
+## Budget and uncertain steps
+
+A costed step whose port call ends `uncertain` commits its reservation once (the cost is assumed incurred) and remembers
+it on the step (`uncertainCharge`). Re-executing the step to reconcile repeats the same idempotent port call and does not
+reserve again: a definite effect is reconciled against that one charge; a definite non-effect (failed, refused, …) is
+recorded on the attempt as a charge that must be corrected in the budget engine, because `BudgetPort` offers no refund of a
+committed charge. A later fresh run reserves normally.
+
 ## Status
 
-Implemented and tested locally on real PostgreSQL 16 (`tests/engine.test.ts`, 8 tests): full lifecycle; closure refused
+Reporting states follow the PAM engine service convention: implemented · locally tested · integration tested · verified
+against a real configured provider · deployed and checked in a hosted environment.
+
+**Implemented and tested locally on real PostgreSQL 16** (`tests/engine*.test.ts`): full lifecycle; closure refused
 while a material question is open; attempts log with failures, zero results, restricted sources and refusals; package
 contents and renderings; reopening with retained package versions; stale and blocked propagation; reviewer ≠ author;
-lane effort accounting; job resume after a simulated worker crash; uncertain side-effect reconciliation; pause and cancel;
-authorization re-check, budget reservation and denial; proposals and bounded auto-accept; tenant, project and compartment
-isolation; fail-closed authorization; idempotent replay; append-only triggers; HTTP end to end.
+lane effort accounting; job resume after a simulated worker crash; uncertain side-effect reconciliation including budget
+charges; pause and cancel; authorization re-check, budget reservation and denial; proposals and bounded auto-accept;
+tenant, project and compartment isolation; fail-closed authorization; idempotent replay; append-only triggers; HTTP end to
+end; interview plans and referral recommendations; all six views (JSON and HTML); package copy restoration; the
+standalone server process (`tests/engine-serve.test.ts`: refuses to start without `DATABASE_URL` or token keys, migrates,
+serves, refuses unauthenticated and foreign-key tokens, runs the worker loop with no ports configured so steps record
+`unavailable`, stops cleanly on SIGTERM); and the live verification script against a local server and a wrong service
+(`tests/engine-live-verify.test.ts`). CI runs all of these against a PostgreSQL 16 service on every push and pull request.
 
-Not implemented or not verified:
-- No integration test against the real E03/E04/E05/E06/E07/E13 engines: the ports in tests are in-memory test doubles
-  (`tests/engine-support.ts`). Port adapters to the real engines are the integrator's.
-- `npm run serve` has no port wiring (standalone mode); it was started manually but has no automated test.
-- No hosted deployment check; no independent security review.
-- Catalog items "referral recommendations" and an "interview schedule" view are not modelled beyond interview plan items.
-  No visual views (question tree, hypothesis matrix …) are rendered; `getOverview` supplies their data.
-- `search` is substring matching (`ILIKE`) over record text; no ranking or language analysis.
-- Compartments are per investigation (children inherit); there is no per-record compartment.
-- A package whose build was interrupted after the database commit but before the object-store copy has no object copy.
-- Budget reservations of `uncertain` steps are committed (cost assumed incurred), not reconciled.
+**Integration tested** (outside this repository): the composition of this engine with the real E03/E04/E05/E06/E07 engines
+and the port adapters belong to the integrator, PAM (`Public-Accountability-Machine`, `src/app/compose.ts`,
+`src/app/adapters.ts`), as the convention assigns; this repository's tests use in-memory test doubles for other engines
+(`tests/engine-support.ts`).
+
+**Complete pending owner credentials** — not claimed here because they need an owner-held deployment and token:
+verification against a real configured provider and a hosted deployment check. Everything up to that boundary exists:
+`scripts/live-verify.mjs` (`npm run live:verify`) checks a deployed service (health, manifest, refusal of unauthenticated
+requests, authenticated list; optionally a write probe that opens one clearly fictional investigation, plans, renders views
+and builds a package; it sends nothing and calls no paid service) and skips visibly without configuration; the manual
+workflow `.github/workflows/live-verify.yml` runs it with repository secrets.
+
+Known limits (by design, not open work): `search` is substring matching (`ILIKE`) without ranking or language analysis;
+compartments are per investigation (children inherit), not per record; the engine does not decide source independence
+(the knowledge engine reports families, a person records the conclusion); nothing in this engine sends correspondence or
+referrals; no independent human security review has been performed (the owner does not require one for merging).
+
+### Owner steps to finish live acceptance
+
+Names only; never commit values.
+
+1. Deploy the engine with a PostgreSQL database (standalone `npm run serve`, or through PAM, which composes it in process).
+   Server environment: `DATABASE_URL`, `IDENTITY_PUBLIC_KEYS` or `IDENTITY_JWKS_FILE`, optionally `IDENTITY_ISSUER`,
+   `PORT`, `HOST` (set `0.0.0.0` on a hosted platform), `OBJECT_STORE` / `OBJECT_STORE_PATH` or `S3_ENDPOINT`, `S3_BUCKET`,
+   `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION`, `S3_PREFIX`, `INVESTIGATION_REQUIRE_DISTINCT_REVIEWER`,
+   `INVESTIGATION_WORKER_INTERVAL_MS`.
+2. Issue, from the Identity engine, an access token for a sandbox tenant and project with `investigation:read` (add
+   `investigation:write` and `investigation:plan` for the write probe).
+3. Add repository secrets `E08_LIVE_BASE_URL` and `E08_LIVE_TOKEN`, then run the "Live verification (opt-in)" workflow
+   (tick the write probe to include it), or run `E08_LIVE_BASE_URL=… E08_LIVE_TOKEN=… [E08_LIVE_WRITE=1] npm run live:verify`.
+   A `LIVE VERIFICATION PASSED` result is the hosted-deployment evidence.
 
 ## Interview plans and referral recommendations
 
